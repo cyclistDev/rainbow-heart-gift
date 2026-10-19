@@ -18,6 +18,7 @@ A romantic animated heart website created as a gift for your loved one.
 ### 3. ✅ Interactive Features
 - **Click anywhere** to create bursts of hearts and sparkles
 - **Mouse trail effect** that follows your cursor
+- **Romantic background music** with play/pause control
 - Click instruction at the bottom of the screen
 - Dynamic visual feedback on user interaction
 
@@ -52,9 +53,10 @@ A romantic animated heart website created as a gift for your loved one.
 
 ### Web Version
 1. Open `index.html` in any web browser
-2. Click anywhere on the screen to create heart bursts and sparkles
-3. Move your mouse to see the trail effect
-4. Enjoy the animated hearts and pulsing text!
+2. Click the "🎵 Play Music" button to start romantic background music
+3. Click anywhere on the screen to create heart bursts and sparkles
+4. Move your mouse to see the trail effect
+5. Enjoy the animated hearts, pulsing text, and romantic music!
 
 ### Python Heart Drawing App
 1. Install dependencies:
@@ -76,19 +78,29 @@ A romantic animated heart website created as a gift for your loved one.
 - ✨ Sparkle effects throughout
 - 💖 Interactive click-to-add hearts
 - 🖱️ Mouse trail effect
+- 🎵 Romantic background music (play/pause control)
 - 📱 Fully responsive design
 - 🎁 Perfect romantic gift
 - 👆 Hand gesture heart drawing (optional)
 
 ## Customization
 
-To customize the message, edit line 206 in index.html:
+To customize the message, edit line 179 in index.html:
 ```html
 <h2 class="main-text">
-    I Luv You So Much Ouksa!!
+    I Love You So Much, Babe Ouksa!!
 </h2>
 ```
 
 To change colors, modify the `colors` array in the script section of index.html.
+
+To change the background music, edit the audio source in line 186:
+```html
+<audio id="bgMusic" loop>
+    <source src="YOUR_MUSIC_URL_HERE" type="audio/mpeg">
+</audio>
+```
+
+Music source: Romantic Piano from Pixabay (royalty-free, no attribution required)
 
 Enjoy! 💕

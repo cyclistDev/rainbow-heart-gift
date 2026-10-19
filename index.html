@@ -125,7 +125,7 @@
 
         .click-instruction {
             position: fixed;
-            bottom: 20px;
+            bottom: 60px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 10;
@@ -133,6 +133,33 @@
             font-size: 14px;
             text-align: center;
             pointer-events: none;
+        }
+
+        .music-control {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            background: rgba(255, 105, 180, 0.3);
+            border: 2px solid rgba(255, 105, 180, 0.5);
+            color: white;
+            padding: 10px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-family: 'Georgia', serif;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .music-control:hover {
+            background: rgba(255, 105, 180, 0.5);
+            transform: translateX(-50%) scale(1.05);
+        }
+
+        .music-control:active {
+            transform: translateX(-50%) scale(0.95);
         }
     </style>
 </head>
@@ -153,6 +180,12 @@
     </h2>
     
     <p class="click-instruction">Click anywhere to add hearts, Oun sml ✨</p>
+    
+    <button class="music-control" id="musicBtn">🎵 Play Music</button>
+    
+    <audio id="bgMusic" loop>
+        <source src="https://cdn.pixabay.com/download/audio/2022/03/10/audio_c8c8a73467.mp3?filename=romantic-piano-164822.mp3" type="audio/mpeg">
+    </audio>
 
 </body>
 
@@ -263,6 +296,26 @@
         const y = Math.random() * window.innerHeight;
         createSparkle(x, y);
     }, 300);
+
+    // Music control
+    const musicBtn = document.getElementById('musicBtn');
+    const bgMusic = document.getElementById('bgMusic');
+    let isPlaying = false;
+
+    musicBtn.addEventListener('click', () => {
+        if (isPlaying) {
+            bgMusic.pause();
+            musicBtn.textContent = '🎵 Play Music';
+            isPlaying = false;
+        } else {
+            bgMusic.play();
+            musicBtn.textContent = '⏸️ Pause Music';
+            isPlaying = true;
+        }
+    });
+
+    // Set music volume
+    bgMusic.volume = 0.3;
 
 </script>
 </html>
