@@ -60,6 +60,29 @@
             }
         }
 
+        .days-counter {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            text-align: center;
+            color: #fff;
+            font-size: clamp(16px, 3vw, 24px);
+            background: rgba(255, 105, 180, 0.2);
+            padding: 15px 30px;
+            border-radius: 25px;
+            border: 2px solid rgba(255, 105, 180, 0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .days-counter .number {
+            font-size: clamp(28px, 5vw, 42px);
+            font-weight: bold;
+            color: #ff6b9d;
+            text-shadow: 0 0 10px rgba(255, 105, 180, 0.8);
+        }
+
         .sparkle {
             position: fixed;
             width: 10px;
@@ -125,7 +148,7 @@
 
         .click-instruction {
             position: fixed;
-            bottom: 60px;
+            bottom: 100px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 10;
@@ -135,16 +158,23 @@
             pointer-events: none;
         }
 
-        .music-control {
+        .control-panel {
             position: fixed;
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 10;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .control-btn {
             background: rgba(255, 105, 180, 0.3);
             border: 2px solid rgba(255, 105, 180, 0.5);
             color: white;
-            padding: 10px 25px;
+            padding: 10px 20px;
             border-radius: 25px;
             cursor: pointer;
             font-size: 16px;
@@ -153,13 +183,121 @@
             backdrop-filter: blur(5px);
         }
 
-        .music-control:hover {
+        .control-btn:hover {
             background: rgba(255, 105, 180, 0.5);
-            transform: translateX(-50%) scale(1.05);
+            transform: scale(1.05);
         }
 
-        .music-control:active {
-            transform: translateX(-50%) scale(0.95);
+        .control-btn:active {
+            transform: scale(0.95);
+        }
+
+        .gallery-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 15;
+            background: rgba(255, 105, 180, 0.3);
+            border: 2px solid rgba(255, 105, 180, 0.5);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-family: 'Georgia', serif;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .gallery-btn:hover {
+            background: rgba(255, 105, 180, 0.5);
+            transform: scale(1.05);
+        }
+
+        .gallery-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .gallery-modal.active {
+            display: flex;
+        }
+
+        .gallery-content {
+            position: relative;
+            max-width: 90%;
+            max-height: 90%;
+        }
+
+        .gallery-image {
+            max-width: 100%;
+            max-height: 80vh;
+            border-radius: 10px;
+            box-shadow: 0 0 30px rgba(255, 105, 180, 0.5);
+        }
+
+        .gallery-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 105, 180, 0.5);
+            border: none;
+            color: white;
+            padding: 20px;
+            cursor: pointer;
+            font-size: 24px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .gallery-nav:hover {
+            background: rgba(255, 105, 180, 0.8);
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .gallery-prev {
+            left: -60px;
+        }
+
+        .gallery-next {
+            right: -60px;
+        }
+
+        .gallery-close {
+            position: absolute;
+            top: -50px;
+            right: 0;
+            background: rgba(255, 0, 0, 0.5);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 18px;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .gallery-close:hover {
+            background: rgba(255, 0, 0, 0.8);
+        }
+
+        .gallery-caption {
+            position: absolute;
+            bottom: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 18px;
+            text-align: center;
+            white-space: nowrap;
         }
     </style>
 </head>
@@ -175,17 +313,35 @@
       </defs>
       </svg>
       
+      <div class="days-counter">
+        We've been together for<br>
+        <span class="number" id="daysCounter">0</span> days
+      </div>
+      
       <h2 class="main-text">
         I Love You So Much, Babe Ouksa!!
     </h2>
     
-    <p class="click-instruction">Click anywhere to add hearts, Oun sml ✨</p>
+    <p class="click-instruction">Click anywhere to add hearts ✨</p>
     
-    <button class="music-control" id="musicBtn">🎵 Play Music</button>
+    <button class="gallery-btn" id="galleryBtn">📸 Gallery</button>
     
-    <audio id="bgMusic" loop>
-        <source src="https://cdn.pixabay.com/download/audio/2022/03/10/audio_c8c8a73467.mp3?filename=romantic-piano-164822.mp3" type="audio/mpeg">
-    </audio>
+    <div class="control-panel">
+        <button class="control-btn" id="musicBtn">🎵 Play Music</button>
+        <button class="control-btn" id="nextTrackBtn">⏭️ Next Track</button>
+    </div>
+    
+    <div class="gallery-modal" id="galleryModal">
+        <div class="gallery-content">
+            <button class="gallery-close" id="galleryClose">✕ Close</button>
+            <button class="gallery-nav gallery-prev" id="galleryPrev">❮</button>
+            <img class="gallery-image" id="galleryImage" src="" alt="Gallery Image">
+            <button class="gallery-nav gallery-next" id="galleryNext">❯</button>
+            <div class="gallery-caption" id="galleryCaption"></div>
+        </div>
+    </div>
+    
+    <audio id="bgMusic" loop></audio>
 
 </body>
 
@@ -227,6 +383,17 @@
     }
 
     Frame();
+
+    // Days counter (set your relationship start date here)
+    const startDate = new Date('2022-10-09'); // CHANGE THIS DATE!
+    function updateDaysCounter() {
+        const now = new Date();
+        const diff = now - startDate;
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        document.getElementById('daysCounter').textContent = days;
+    }
+    updateDaysCounter();
+    setInterval(updateDaysCounter, 1000);
 
     // Add sparkle effect
     function createSparkle(x, y) {
@@ -297,25 +464,110 @@
         createSparkle(x, y);
     }, 300);
 
-    // Music control
-    const musicBtn = document.getElementById('musicBtn');
+    // Music playlist
+    const musicTracks = [
+        { name: "Romantic Piano", url: "https://cdn.pixabay.com/download/audio/2022/03/10/audio_c8c8a73467.mp3?filename=romantic-piano-164822.mp3" },
+        { name: "Love Ballad", url: "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=romantic-piano-124980.mp3" },
+        { name: "Sweet Melody", url: "https://cdn.pixabay.com/download/audio/2022/02/07/audio_8b61449575.mp3?filename=romantic-piano-11166.mp3" }
+    ];
+    
+    let currentTrack = 0;
     const bgMusic = document.getElementById('bgMusic');
     let isPlaying = false;
 
-    musicBtn.addEventListener('click', () => {
+    function loadTrack(index) {
+        bgMusic.src = musicTracks[index].url;
+    }
+
+    loadTrack(0);
+
+    // Music control
+    document.getElementById('musicBtn').addEventListener('click', () => {
         if (isPlaying) {
             bgMusic.pause();
-            musicBtn.textContent = '🎵 Play Music';
+            document.getElementById('musicBtn').textContent = '🎵 Play Music';
             isPlaying = false;
         } else {
             bgMusic.play();
-            musicBtn.textContent = '⏸️ Pause Music';
+            document.getElementById('musicBtn').textContent = '⏸️ Pause Music';
             isPlaying = true;
+        }
+    });
+
+    // Next track
+    document.getElementById('nextTrackBtn').addEventListener('click', () => {
+        currentTrack = (currentTrack + 1) % musicTracks.length;
+        loadTrack(currentTrack);
+        if (isPlaying) {
+            bgMusic.play();
         }
     });
 
     // Set music volume
     bgMusic.volume = 0.3;
+
+    // Photo Gallery
+    const galleryImages = [
+        { src: "https://via.placeholder.com/800x600/ff6b9d/ffffff?text=Photo+1", caption: "Our First Date 💕" },
+        { src: "https://via.placeholder.com/800x600/c44569/ffffff?text=Photo+2", caption: "Beautiful Memories 🌟" },
+        { src: "https://via.placeholder.com/800x600/ff8a5c/ffffff?text=Photo+3", caption: "Special Moments ✨" },
+        { src: "https://via.placeholder.com/800x600/e03776/ffffff?text=Photo+4", caption: "Forever Together 💖" }
+    ];
+
+    let currentImageIndex = 0;
+    const galleryModal = document.getElementById('galleryModal');
+    const galleryImage = document.getElementById('galleryImage');
+    const galleryCaption = document.getElementById('galleryCaption');
+
+    document.getElementById('galleryBtn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        galleryModal.classList.add('active');
+        updateGalleryImage();
+    });
+
+    document.getElementById('galleryClose').addEventListener('click', (e) => {
+        e.stopPropagation();
+        galleryModal.classList.remove('active');
+    });
+
+    document.getElementById('galleryPrev').addEventListener('click', (e) => {
+        e.stopPropagation();
+        currentImageIndex = (currentImageIndex - 1 + galleryImages.length) % galleryImages.length;
+        updateGalleryImage();
+    });
+
+    document.getElementById('galleryNext').addEventListener('click', (e) => {
+        e.stopPropagation();
+        currentImageIndex = (currentImageIndex + 1) % galleryImages.length;
+        updateGalleryImage();
+    });
+
+    function updateGalleryImage() {
+        galleryImage.src = galleryImages[currentImageIndex].src;
+        galleryCaption.textContent = galleryImages[currentImageIndex].caption;
+    }
+
+    // Close gallery on modal click
+    galleryModal.addEventListener('click', (e) => {
+        if (e.target === galleryModal) {
+            galleryModal.classList.remove('active');
+        }
+    });
+
+    // Keyboard navigation for gallery
+    document.addEventListener('keydown', (e) => {
+        if (galleryModal.classList.contains('active')) {
+            if (e.key === 'ArrowLeft') {
+                currentImageIndex = (currentImageIndex - 1 + galleryImages.length) % galleryImages.length;
+                updateGalleryImage();
+            } else if (e.key === 'ArrowRight') {
+                currentImageIndex = (currentImageIndex + 1) % galleryImages.length;
+                updateGalleryImage();
+            } else if (e.key === 'Escape') {
+                galleryModal.classList.remove('active');
+            }
+        }
+    });
 
 </script>
 </html>
