@@ -1,53 +1,64 @@
 # RainbowHeart - Improved Version 💕
 
-A romantic animated heart website created as a gift for your loved one.
+A romantic animated heart website with hand gesture drawing - created as a gift for your loved one.
 
 ## Improvements Made
 
-### 1. ✅ Fixed Text Centering
+### 1. ✅ Free Drawing App with Hand Gestures (NEW!)
+- **Smart gesture control**: 
+  - ✊ **Fist (closed hand)** = STOP drawing
+  - ☝️ **One finger up (index finger)** = DRAW
+- Draw anything you want with your index finger - letters, words, shapes, hearts
+- 10 beautiful colors to choose from
+- **On-screen buttons**: Clear and Save buttons on the right sidebar
+- Adjustable brush size (press [ ])
+- Zoom in/out (press +/-)
+- Uses hand gestures - no mouse or touchpad needed!
+
+### 2. ✅ Fixed Text Centering
 - Text is now perfectly centered using CSS flexbox and transform
 - Responsive font size that scales with screen size
 - Improved text positioning on all devices
 
-### 2. ✅ Enhanced Heart Animation
+### 3. ✅ Enhanced Heart Animation
 - Added sparkle effects that appear randomly in the background
 - Added floating hearts that rise up when you click
 - Enhanced color palette with more romantic colors
 - Smooth pulsing animation on the main text
 
-### 3. ✅ Interactive Features
+### 4. ✅ Interactive Features
 - **Click anywhere** to create bursts of hearts and sparkles
 - **Mouse trail effect** that follows your cursor
 - **Romantic background music** with play/pause control
 - Click instruction at the bottom of the screen
 - Dynamic visual feedback on user interaction
 
-### 4. ✅ Mobile Responsiveness
+### 5. ✅ Mobile Responsiveness
 - Responsive font sizes using CSS clamp()
 - Touch-friendly interactions
 - Works perfectly on all screen sizes
 - Flexible layout that adapts to different devices
 
-### 5. ✅ Visual Enhancements
+### 6. ✅ Visual Enhancements
 - Beautiful gradient background (dark blue/purple theme)
 - Better typography with Georgia serif font
 - Enhanced text shadows and glow effects
 - More vibrant and romantic color scheme
 - Professional-looking animations
 
-### 6. ✅ Code Improvements
+### 7. ✅ Code Improvements
 - All CSS embedded in HTML for better portability
 - Clean, organized code structure
 - Removed unrelated files (about.html, img folder)
 - Fixed and improved ani.js with heart animation utilities
-- Fixed and improved cmrdraw.py (hand gesture heart drawing)
+- Fixed cmrdraw.py to work with hand gestures (draw with your finger!)
 
 ## Files
 
 - **index.html** - Main website with animated hearts and interactive features
 - **ani.js** - Additional heart animation utilities (bursts, showers)
-- **cmrdraw.py** - Hand gesture heart drawing app using MediaPipe
-- **style.css/style.css** - Reference file (styles now embedded in HTML)
+- **cmrdraw.py** - Hand gesture drawing app - draw with your index finger!
+- **style.css** - Reference file (styles now embedded in HTML)
 
 ## How to Use
 
@@ -58,19 +69,30 @@ A romantic animated heart website created as a gift for your loved one.
 4. Move your mouse to see the trail effect
 5. Enjoy the animated hearts, pulsing text, and romantic music!
 
-### Python Heart Drawing App
+### Python Drawing App - Hand Gesture Control
 1. Install dependencies:
    ```bash
-   pip install opencv-python mediapipe numpy
+   pip install opencv-python mediapipe==0.10.9 numpy
    ```
 2. Run the script:
    ```bash
    python cmrdraw.py
    ```
-3. Use your index finger to draw hearts on the screen
-4. Click color buttons at the top to change heart colors
-5. Press 'c' to clear the canvas
-6. Press 'q' to quit
+3. **Gesture Controls**:
+   - ✊ **Make a fist** = STOP drawing
+   - ☝️ **Raise only index finger** = DRAW
+   - 👆 **Point at color buttons** (top) to change colors
+   - 👆 **Point at CLR button** (right sidebar) to clear canvas
+   - 👆 **Point at SAVE button** (right sidebar) to save drawing
+4. **Keyboard Controls**:
+   - Press **[ ]** to change brush size
+   - Press **+/-** to zoom in/out
+   - Press **'q'** to quit
+5. **Draw anything you want**:
+   - Letters and words
+   - Hearts and shapes
+   - Doodles and art
+   - Anything your heart desires!
 
 ## Features
 
@@ -81,7 +103,7 @@ A romantic animated heart website created as a gift for your loved one.
 - 🎵 Romantic background music (play/pause control)
 - 📱 Fully responsive design
 - 🎁 Perfect romantic gift
-- 👆 Hand gesture heart drawing (optional)
+- 👆 Hand gesture drawing - draw with your finger!
 
 ## Customization
 
