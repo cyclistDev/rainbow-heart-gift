@@ -365,7 +365,7 @@
             updatePetPosition();
         }
 
-        function saveCameraSnapshot(frame) {
+        function saveCameraSnapshot(frame, galleryService) {
             const snapshotCanvas = document.createElement('canvas');
             snapshotCanvas.width = frame.width || videoElement.videoWidth;
             snapshotCanvas.height = frame.height || videoElement.videoHeight;
@@ -381,7 +381,7 @@
                 try {
                     const response = await fetch(galleryService.endpoint, {
                         method: 'POST',
-                        headers: { ...apiHeaders, 'Content-Type': 'image/jpeg' },
+                        headers: { ...galleryService.headers, 'Content-Type': 'image/jpeg' },
                         body: imageBlob
                     });
                     if (!response.ok) {
