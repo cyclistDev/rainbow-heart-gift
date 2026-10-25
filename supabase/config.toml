@@ -1,0 +1,2 @@
+[functions.gallery]
+verify_jwt = false

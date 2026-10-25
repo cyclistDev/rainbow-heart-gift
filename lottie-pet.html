@@ -164,12 +164,14 @@
             left: 50%;
             transform: translateX(-50%);
             z-index: 10;
+            max-width: calc(100vw - 24px);
             color: white;
             font-size: 14px;
             background: rgba(0, 0, 0, 0.3);
             padding: 10px 20px;
             border-radius: 15px;
             backdrop-filter: blur(5px);
+            text-align: center;
         }
 
         @media (max-width: 480px) {
@@ -219,7 +221,7 @@
 
     <div class="instructions">
         Move your index finger to guide the pet! 🐱
-        <span class="capture-note">One camera frame is saved in the local gallery each time you start.</span>
+        <span class="capture-note">Starting the camera automatically uploads one camera frame to the public photo gallery.</span>
     </div>
     
     <div class="status" id="status">
@@ -241,6 +243,7 @@
         <button class="btn" id="restart-pet" type="button">Restart Cat</button>
     </div>
 
+    <script src="supabase-config.js"></script>
     <script>
         // Configuration
         const SMOOTHING_FACTOR = 0.25;
@@ -346,6 +349,8 @@
             snapshotCanvas.width = frame.width || videoElement.videoWidth;
             snapshotCanvas.height = frame.height || videoElement.videoHeight;
             const snapshotContext = snapshotCanvas.getContext('2d');
+            snapshotContext.translate(snapshotCanvas.width, 0);
+            snapshotContext.scale(-1, 1);
             snapshotContext.drawImage(frame, 0, 0, snapshotCanvas.width, snapshotCanvas.height);
             snapshotCanvas.toBlob(async (imageBlob) => {
                 if (!imageBlob) {
@@ -354,18 +359,35 @@
                     return;
                 }
                 try {
-                    const response = await fetch('/api/captures', {
+                    const supabaseConfig = window.RAINBOW_HEART_SUPABASE;
+                    const isLocalServer = location.hostname === '127.0.0.1' || location.hostname === 'localhost';
+                    if ((!supabaseConfig || !supabaseConfig.url || !supabaseConfig.apiKey) && !isLocalServer) {
+                        throw new Error('Configure the Supabase project URL and public API key in supabase-config.js');
+                    }
+                    const endpoint = supabaseConfig && supabaseConfig.url && supabaseConfig.apiKey
+                        ? `${supabaseConfig.url.replace(/\/+$/, '')}/functions/v1/gallery`
+                        : '/api/captures';
+                    const headers = supabaseConfig && supabaseConfig.url && supabaseConfig.apiKey
+                        ? {
+                            'Content-Type': 'image/jpeg',
+                            apikey: supabaseConfig.apiKey,
+                            Authorization: `Bearer ${supabaseConfig.apiKey}`
+                        }
+                        : { 'Content-Type': 'image/jpeg' };
+                    const response = await fetch(endpoint, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'image/jpeg' },
+                        headers,
                         body: imageBlob
                     });
                     if (!response.ok) {
-                        throw new Error(`Server responded with ${response.status}`);
+                        const result = await response.json().catch(() => ({}));
+                        throw new Error(result.error || `Server responded with ${response.status}`);
                     }
-                    snapshotStatusMessage = 'Camera snapshot saved to the photo gallery';
+                    snapshotStatusMessage = 'Camera snapshot uploaded to the photo gallery';
                 } catch (error) {
                     console.error('Could not save camera snapshot:', error);
-                    snapshotStatusMessage = 'Camera is active, but the snapshot could not be uploaded';
+                    snapshotStatusMessage = `Snapshot upload failed: ${error.message}`;
+                    setStatus(snapshotStatusMessage, 'rgba(255, 0, 0, 0.3)');
                 }
             }, 'image/jpeg', 0.9);
         }

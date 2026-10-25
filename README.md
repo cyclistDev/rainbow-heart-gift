@@ -67,6 +67,9 @@ A romantic animated heart website with hand gesture drawing - created as a gift 
 
 - **index.html** - Main website with animated hearts and interactive features
 - **serve_rainbow_heart.py** - Local web server for camera access and saving captures into the gallery
+- **supabase/functions/gallery/index.ts** - Supabase API for public gallery reads and camera uploads
+- **supabase/migrations/** - Supabase storage bucket and upload rate-limit setup
+- **supabase-config.js** - Public Supabase project URL and anon key used by the GitHub Pages frontend
 - **ani.js** - Additional heart animation utilities (bursts, showers)
 - **cmrdraw.py** - Two-hand gesture drawing app with adjustable tools and canvas history
 - **style.css** - Reference file (styles now embedded in HTML)
@@ -90,6 +93,37 @@ is shown instead.
 
 The photo gallery displays the images in the `images` folder. Add or replace
 static gallery images there and update the `galleryImages` list in `index.html`.
+
+### Deploying camera uploads with GitHub Pages
+
+GitHub Pages cannot run the upload API or permanently save uploaded files in
+the repository. The Supabase function and Storage bucket below keep captures
+separate from the deployed source files:
+
+1. Create a Supabase project and install the Supabase CLI.
+2. Link this repository to the project and deploy the bucket/rate-limit setup:
+   ```bash
+   supabase login
+   supabase link --project-ref YOUR_PROJECT_REF
+   supabase db push
+   supabase functions deploy gallery
+   ```
+3. Copy the project URL and a **publishable** (or legacy anon) key into `url`
+   and `apiKey` in `supabase-config.js`, then commit and push that public configuration for
+   GitHub Pages to serve. These two values are public client configuration;
+   never put a Supabase `service_role` key in this file or in GitHub Pages.
+4. In GitHub repository settings, enable Pages for the branch/folder containing
+   the HTML files and wait for deployment. The camera requires the HTTPS Pages
+   URL (or localhost during local testing).
+
+When a visitor starts the camera and grants permission, the first camera frame
+is automatically uploaded to the **public** `camera-captures` gallery. The page
+discloses this before camera use. The API accepts JPEGs up to 5 MB and limits
+uploads to five per IP-address hash per hour. Anyone can view uploaded images,
+so do not use public uploads if captures should be private. If enabling
+`verify_jwt` for the function, keep it disabled as configured: the function
+validates a public publishable/anon key itself and uses the server-side secret
+key for storage access.
 
 ### Python Drawing App - Hand Gesture Control
 1. Install dependencies:

@@ -522,7 +522,8 @@
 
 </body>
 
-<script>
+    <script src="supabase-config.js"></script>
+    <script>
     const colors = ["#e03776","#8f3e98","#4687bf","#3bab6f","#f9c25e","#f47274","#ff6b9d","#c44569","#ff8a5c","#ff3c83"];
     const SVG_NS = 'http://www.w3.org/2000/svg';
     const SVG_XLINK = "http://www.w3.org/1999/xlink";
@@ -833,20 +834,36 @@
     ];
 
     async function loadSavedCameraCaptures() {
-        if (location.protocol === 'file:') {
+        const supabaseConfig = window.RAINBOW_HEART_SUPABASE;
+        let apiUrl;
+        let headers = {};
+        if (supabaseConfig && supabaseConfig.url && supabaseConfig.apiKey) {
+            const supabaseUrl = supabaseConfig.url.replace(/\/+$/, '');
+            apiUrl = `${supabaseUrl}/functions/v1/gallery`;
+            headers = {
+                apikey: supabaseConfig.apiKey,
+                Authorization: `Bearer ${supabaseConfig.apiKey}`
+            };
+        } else if (location.hostname === '127.0.0.1' || location.hostname === 'localhost') {
+            apiUrl = '/api/gallery';
+        } else {
             return;
         }
-        const response = await fetch('/api/gallery');
+        const response = await fetch(apiUrl, { headers });
         if (!response.ok) {
             throw new Error(`Gallery request failed with status ${response.status}`);
         }
         const result = await response.json();
         const knownSources = new Set(galleryImages.map((image) => image.src));
+        const supabaseImagePrefix = supabaseConfig && supabaseConfig.url
+            ? `${supabaseConfig.url.replace(/\/+$/, '')}/storage/v1/object/public/camera-captures/`
+            : '';
         const savedCaptures = Array.isArray(result.images)
             ? result.images.filter((image) =>
                 image &&
                 typeof image.src === 'string' &&
-                image.src.startsWith('/images/camera_capture_') &&
+                (image.src.startsWith('/images/camera_capture_') ||
+                    (supabaseImagePrefix && image.src.startsWith(supabaseImagePrefix))) &&
                 typeof image.caption === 'string' &&
                 !knownSources.has(image.src)
             )
