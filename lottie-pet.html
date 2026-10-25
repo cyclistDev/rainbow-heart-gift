@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lottie Pet with Hand Tracking</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+        }
+
+        .container {
+            position: relative;
+            width: min(1280px, calc(100vw - 24px), 140vh);
+            aspect-ratio: 16 / 9;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        #video-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        #video-element {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+        }
+
+        #canvas-element {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            transform: scaleX(-1);
+        }
+
+        #lottie-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 3;
+            width: min(200px, 36vw, 28vh);
+            aspect-ratio: 1;
+            transition: all 0.3s ease;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            display: flex;
+            gap: 10px;
+        }
+
+        .back-link {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 11;
+            color: white;
+            background: rgba(40, 29, 79, 0.72);
+            border: 2px solid rgba(255, 255, 255, 0.55);
+            border-radius: 24px;
+            padding: 10px 16px;
+            font-size: 15px;
+            font-weight: bold;
+            text-decoration: none;
+            backdrop-filter: blur(5px);
+            transition: background 0.2s ease, transform 0.2s ease;
+        }
+
+        .back-link:hover,
+        .back-link:focus-visible {
+            background: rgba(40, 29, 79, 0.95);
+            transform: translateY(-1px);
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.4);
+            transform: scale(1.05);
+        }
+
+        .instructions {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            color: white;
+            font-size: 18px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px 30px;
+            border-radius: 25px;
+            backdrop-filter: blur(5px);
+            text-align: center;
+        }
+
+        .status {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            color: white;
+            font-size: 14px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(5px);
+        }
+
+        @media (max-width: 480px) {
+            .back-link {
+                top: 12px;
+                left: 12px;
+                padding: 8px 12px;
+                font-size: 14px;
+            }
+
+            .instructions {
+                width: calc(100% - 24px);
+                padding: 10px 14px;
+                font-size: 16px;
+            }
+
+            .status {
+                top: 68px;
+            }
+
+            .btn {
+                padding: 9px 14px;
+                font-size: 14px;
+            }
+        }
+
+        @media (max-height: 360px) {
+            .instructions,
+            .status {
+                display: none;
+            }
+
+            .controls {
+                top: 10px;
+                bottom: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a class="back-link" href="index.html">← Back to Rainbow Heart</a>
+
+    <div class="instructions">
+        Move your hand to guide the pet! 🐱
+    </div>
+    
+    <div class="status" id="status">
+        Loading...
+    </div>
+
+    <div class="container">
+        <div id="video-container">
+            <video id="video-element" playsinline></video>
+            <canvas id="canvas-element"></canvas>
+        </div>
+        <div id="lottie-container"></div>
+    </div>
+
+    <div class="controls">
+        <button class="btn" id="toggle-camera">Toggle Camera</button>
+        <button class="btn" id="restart-pet">Restart Cat</button>
+    </div>
+
+    <script>
+        // Configuration
+        const PET_SIZE = 200;
+        const SMOOTHING_FACTOR = 0.1;
+        
+        const petAnimationUrl = 'https://lottie.host/0b417e38-2cdf-487f-8184-73f3b9499aff/AcGZxUQwpV.json';
+
+        // State
+        const petStage = document.querySelector('.container');
+        let petX = petStage.clientWidth / 2;
+        let petY = petStage.clientHeight / 2;
+        let targetX = petX;
+        let targetY = petY;
+        let handDetected = false;
+        let cameraEnabled = true;
+
+        // Initialize Lottie
+        const lottieContainer = document.getElementById('lottie-container');
+        let lottieAnimation = lottie.loadAnimation({
+            container: lottieContainer,
+            renderer: 'svg',
+            loop: true,
+            autoplay: true,
+            path: petAnimationUrl
+        });
+
+        // Initialize MediaPipe Hands
+        const videoElement = document.getElementById('video-element');
+        const canvasElement = document.getElementById('canvas-element');
+        const canvasCtx = canvasElement.getContext('2d');
+        const statusDiv = document.getElementById('status');
+
+        function setStatus(message, background) {
+            statusDiv.textContent = message;
+            statusDiv.style.background = background;
+        }
+
+        function onResults(results) {
+            // Clear canvas
+            canvasCtx.save();
+            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+            
+            // Draw video
+            canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+            
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                handDetected = true;
+                statusDiv.textContent = 'Hand detected! 🐱';
+                statusDiv.style.background = 'rgba(0, 255, 0, 0.3)';
+                
+                for (const landmarks of results.multiHandLandmarks) {
+                    // Calculate hand center
+                    let avgX = 0;
+                    let avgY = 0;
+                    for (const landmark of landmarks) {
+                        avgX += landmark.x;
+                        avgY += landmark.y;
+                    }
+                    avgX /= landmarks.length;
+                    avgY /= landmarks.length;
+                    
+                    // Convert to screen coordinates
+                    targetX = avgX * petStage.clientWidth;
+                    targetY = avgY * petStage.clientHeight;
+                    
+                    // Draw hand landmarks
+                    drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, {color: '#00FF00', lineWidth: 2});
+                    drawLandmarks(canvasCtx, landmarks, {color: '#FF0000', lineWidth: 1});
+                }
+            } else {
+                handDetected = false;
+                statusDiv.textContent = 'No hand detected - pet returning to center';
+                statusDiv.style.background = 'rgba(255, 255, 0, 0.3)';
+                
+                // Return to center
+                targetX = petStage.clientWidth / 2;
+                targetY = petStage.clientHeight / 2;
+            }
+            
+            canvasCtx.restore();
+            
+            // Update pet position with smoothing
+            updatePetPosition();
+        }
+
+        function updatePetPosition() {
+            // Smooth movement
+            petX += (targetX - petX) * SMOOTHING_FACTOR;
+            petY += (targetY - petY) * SMOOTHING_FACTOR;
+            
+            // Update Lottie position
+            lottieContainer.style.left = petX + 'px';
+            lottieContainer.style.top = petY + 'px';
+            
+            // Scale pet based on hand proximity
+            if (handDetected) {
+                const distance = Math.sqrt(
+                    Math.pow(targetX - petX, 2) + 
+                    Math.pow(targetY - petY, 2)
+                );
+                const scale = Math.max(0.5, Math.min(1.5, 1 - distance / 500));
+                lottieContainer.style.transform = `translate(-50%, -50%) scale(${scale})`;
+            } else {
+                lottieContainer.style.transform = 'translate(-50%, -50%) scale(1)';
+            }
+        }
+
+        // Initialize Hands
+        const hands = new Hands({locateFile: (file) => {
+            return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+        }});
+
+        hands.setOptions({
+            maxNumHands: 1,
+            modelComplexity: 1,
+            minDetectionConfidence: 0.7,
+            minTrackingConfidence: 0.5
+        });
+
+        hands.onResults(onResults);
+
+        // Initialize Camera
+        const camera = new Camera(videoElement, {
+            onFrame: async () => {
+                await hands.send({image: videoElement});
+            },
+            width: 1280,
+            height: 720
+        });
+
+        // Set canvas size
+        canvasElement.width = 1280;
+        canvasElement.height = 720;
+
+        lottieAnimation.addEventListener('DOMLoaded', () => {
+            if (location.protocol === 'file:') {
+                setStatus('Cat loaded! Use localhost to enable hand tracking.', 'rgba(0, 255, 0, 0.3)');
+            }
+        });
+
+        // Camera access is restricted on file URLs; skip the prompt so the cat still works.
+        if (location.protocol === 'file:') {
+            setStatus('Cat loaded! Use localhost to enable hand tracking.', 'rgba(0, 255, 0, 0.3)');
+        } else {
+            camera.start()
+                .then(() => {
+                    setStatus('Camera active! Move your hand', 'rgba(0, 255, 0, 0.3)');
+                })
+                .catch(err => {
+                    console.error('Camera error:', err);
+                    setStatus('Camera error: ' + err.message, 'rgba(255, 0, 0, 0.3)');
+                });
+        }
+
+        // Toggle camera
+        document.getElementById('toggle-camera').addEventListener('click', () => {
+            if (location.protocol === 'file:') {
+                setStatus('Run this page from localhost to use the camera.', 'rgba(255, 255, 0, 0.3)');
+                return;
+            }
+
+            if (cameraEnabled) {
+                camera.stop();
+                cameraEnabled = false;
+                setStatus('Camera paused', 'rgba(255, 255, 0, 0.3)');
+            } else {
+                camera.start();
+                cameraEnabled = true;
+                setStatus('Camera active!', 'rgba(0, 255, 0, 0.3)');
+            }
+        });
+
+        lottieAnimation.addEventListener('data_failed', () => {
+            console.error('Failed to load the Lottie cat animation:', petAnimationUrl);
+            statusDiv.textContent = 'Cat animation failed to load. Check your internet connection and refresh.';
+            statusDiv.style.background = 'rgba(255, 0, 0, 0.3)';
+        });
+
+        document.getElementById('restart-pet').addEventListener('click', () => {
+            lottieAnimation.goToAndPlay(0, true);
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            canvasElement.width = 1280;
+            canvasElement.height = 720;
+            targetX = petStage.clientWidth / 2;
+            targetY = petStage.clientHeight / 2;
+        });
+    </script>
+</body>
+</html>

@@ -1,19 +1,17 @@
 # RainbowHeart - Improved Version 💕
-
+### Run the hand-gesture app with `python cmrdraw.py`
 A romantic animated heart website with hand gesture drawing - created as a gift for your loved one.
 
 ## Improvements Made
 
 ### 1. ✅ Free Drawing App with Hand Gestures (NEW!)
-- **Smart gesture control**: 
-  - ✊ **Fist (closed hand)** = STOP drawing
-  - ☝️ **One finger up (index finger)** = DRAW
-- Draw anything you want with your index finger - letters, words, shapes, hearts
-- 10 beautiful colors to choose from
-- **On-screen buttons**: Clear and Save buttons on the right sidebar
-- Adjustable brush size (press [ ])
-- Zoom in/out (press +/-)
-- Uses hand gestures - no mouse or touchpad needed!
+- Tracks up to two hands and identifies left and right hands consistently
+- Smoothly tracks all 21 MediaPipe landmarks per hand
+- ☝️ **Index finger** = draw with either hand; ✊ **Fist** = stop drawing
+- 🤏 **Pinch** = select a color or canvas control
+- ✌️ **Two fingers** = undo; 🖐️ **Open palm** = pause or resume drawing
+- Includes adjustable brushes, an eraser, undo/redo, and canvas controls
+- Filters jitter and breaks strokes when a hand is lost or moves abruptly
 
 ### 2. ✅ Fixed Text Centering
 - Text is now perfectly centered using CSS flexbox and transform
@@ -22,13 +20,10 @@ A romantic animated heart website with hand gesture drawing - created as a gift 
 
 ### 3. ✅ Enhanced Heart Animation
 - Added sparkle effects that appear randomly in the background
-- Added floating hearts that rise up when you click
 - Enhanced color palette with more romantic colors
 - Smooth pulsing animation on the main text
 
 ### 4. ✅ Interactive Features
-- **Click anywhere** to create bursts of hearts and sparkles
-- **Particle explosion** - hearts burst in all directions on click
 - **Floating "I LOVE YOU" letters** - letters drift across the screen
 - **Mouse trail effect** that follows your cursor
 - **Romantic background music** with play/pause control
@@ -36,14 +31,17 @@ A romantic animated heart website with hand gesture drawing - created as a gift 
 - **Confetti celebration** - click the confetti button for celebration
 - **Fullscreen mode** - immersive experience
 - **Typewriter effect** - message types out letter by letter
-- Click instruction at the bottom of the screen
 - Dynamic visual feedback on user interaction
+- The click-to-add-hearts and sparkles handler is commented out in `index.html`
 
 ### 5. ✅ Mobile Responsiveness
 - Responsive font sizes using CSS clamp()
 - Touch-friendly interactions
 - Works perfectly on all screen sizes
 - Flexible layout that adapts to different devices
+- The days-together counter stays centered with a simple, uncluttered display
+- The gallery stays at the bottom-left, and the Lottie Cat link is an icon
+- The Lottie Cat page includes a visible link back to the main page
 
 ### 6. ✅ Visual Enhancements
 - Beautiful gradient background (dark blue/purple theme)
@@ -56,30 +54,35 @@ A romantic animated heart website with hand gesture drawing - created as a gift 
 - **Days Together Counter** - real-time counter showing how many days you've been together
 - Beautiful display at the top of the screen
 - Updates every second
-- Customizable start date (edit line 444 in index.html)
+- Change the relationship start date by editing the `startDate` value in the script in `index.html`; the date-picker markup and notes are left commented out for later
 
 ### 8. ✅ Code Improvements
 - All CSS embedded in HTML for better portability
 - Clean, organized code structure
 - Removed unrelated files (about.html, img folder)
 - Fixed and improved ani.js with heart animation utilities
-- Fixed cmrdraw.py to work with hand gestures (draw with your finger!)
+- Separated hand tracking, gesture recognition, and canvas drawing in `cmrdraw.py`
 
 ## Files
 
 - **index.html** - Main website with animated hearts and interactive features
 - **ani.js** - Additional heart animation utilities (bursts, showers)
-- **cmrdraw.py** - Hand gesture drawing app - draw with your index finger!
+- **cmrdraw.py** - Two-hand gesture drawing app with adjustable tools and canvas history
 - **style.css** - Reference file (styles now embedded in HTML)
 
 ## How to Use
 
 ### Web Version
-1. Open `index.html` in any web browser
+1. For YouTube playback, run the project from a local web server (for example, run `python -m http.server 8000` in the project folder and open `http://localhost:8000`). YouTube also requires an internet connection.
 2. Click the "🎵 Play Music" button to start romantic background music
-3. Click anywhere on the screen to create heart bursts and sparkles
+3. Click "⏭️ Next Track" to cycle through the playlist, including "Love Shine — Leeheesang"; its YouTube player appears when selected
 4. Move your mouse to see the trail effect
-5. Enjoy the animated hearts, pulsing text, and romantic music!
+5. To change the relationship start date, edit `startDate` in `index.html`
+6. Enjoy the animated hearts, pulsing text, and romantic music!
+
+The photo gallery displays the images stored in the `images` folder. Add or
+replace files there and update the `galleryImages` list in `index.html` to
+change the gallery.
 
 ### Python Drawing App - Hand Gesture Control
 1. Install dependencies:
@@ -91,27 +94,51 @@ A romantic animated heart website with hand gesture drawing - created as a gift 
    python cmrdraw.py
    ```
 3. **Gesture Controls**:
-   - ✊ **Make a fist** = STOP drawing
-   - ☝️ **Raise only index finger** = DRAW
-   - 👆 **Point at color buttons** (top) to change colors
-   - 👆 **Point at CLR button** (right sidebar) to clear canvas
-   - 👆 **Point at SAVE button** (right sidebar) to save drawing
-4. **Keyboard Controls**:
-   - Press **[ ]** to change brush size
-   - Press **+/-** to zoom in/out
-   - Press **'q'** to quit
+   - ☝️ **Raise only your index finger** = draw with either hand
+   - ✊ **Make a fist** = stop drawing
+   - 🤏 **Pinch thumb and index finger** over the top palette or a right-side button to select it; follow the yellow cursor ring and wait for the on-screen confirmation
+   - ✌️ **Raise index and middle fingers** = undo
+   - 🖐️ **Open your palm** = pause or resume drawing
+   - Pinch the right-side **CLEAR**, **UNDO**, **REDO**, **BRUSH -/+**, **ERASER**, **ZOOM -/+**, **PAUSE**, or **SAVE** buttons
+   - All drawing controls are available in the webcam view; the keyboard is optional
+4. **Optional Keyboard Shortcuts**:
+   - Press **[ ]** to decrease/increase brush size
+   - Press **E** to toggle the eraser
+   - Press **Ctrl+Z / Ctrl+Y** to undo/redo
+   - Press **P** to pause/resume
+   - Press **+/-** to zoom the webcam view in/out (0.5x to 3.0x)
+   - Press **S** to save the drawing
+   - Press **Q** to quit
 5. **Draw anything you want**:
    - Letters and words
    - Hearts and shapes
    - Doodles and art
    - Anything your heart desires!
 
+The drawing is saved as `love_drawing.png` in the same folder as `cmrdraw.py`.
+Pinch the on-screen **SAVE** button or press **S**; a success or failure message
+appears in the webcam window, and the full save path is printed in the terminal.
+This saves the drawing canvas (with its black background), not a webcam photograph.
+Tracking confidence, smoothing, and gesture stability thresholds are configurable
+near the top of `cmrdraw.py`.
+
+### FingerCat Webcam Pet
+
+Run `python cat_pet.py` for the MediaPipe webcam pet. It tracks the index fingertip,
+smoothly follows it, and overlays an animated chibi cat made from transparent PNG
+sprite frames. The drawing app in `cmrdraw.py` and the RainbowHeart web app are
+separate and remain unchanged.
+
+Install dependencies with `pip install -r requirements-fingercat.txt`. The included
+four-frame sprite is in `assets/fingercat/frames/`; run `python create_cat_frames.py`
+to regenerate it. To use your own art, replace those with same-sized transparent
+RGBA PNGs named in frame order (such as `frame_00.png`, `frame_01.png`). The loader
+composites the frames over the webcam feed and loops at 8 FPS.
+
 ## Features
 
 - 🎨 Beautiful rainbow heart animation
 - ✨ Sparkle effects throughout
-- 💖 Interactive click-to-add hearts
-- � Particle explosion on click
 - 🔤 Floating "I LOVE YOU" letters
 - �🖱️ Mouse trail effect
 - 🎵 Romantic background music (3-track playlist)
@@ -122,7 +149,7 @@ A romantic animated heart website with hand gesture drawing - created as a gift 
 - 💕 Days together counter
 - 📱 Fully responsive design
 - 🎁 Perfect romantic gift
-- 👆 Hand gesture drawing - draw with your finger!
+- 👆 Two-hand gesture drawing with undo/redo and eraser!
 
 ## Customization
 

@@ -68,19 +68,22 @@
             z-index: 10;
             text-align: center;
             color: #fff;
-            font-size: clamp(16px, 3vw, 24px);
-            background: rgba(255, 105, 180, 0.2);
-            padding: 15px 30px;
-            border-radius: 25px;
-            border: 2px solid rgba(255, 105, 180, 0.5);
-            backdrop-filter: blur(5px);
+            font-size: clamp(17px, 3vw, 22px);
+            padding: 10px 16px;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.85);
+        }
+
+        .days-counter-title {
+            display: block;
+            margin-bottom: 2px;
+            font-size: 0.9em;
+            font-weight: bold;
         }
 
         .days-counter .number {
-            font-size: clamp(28px, 5vw, 42px);
+            font-size: clamp(36px, 5vw, 46px);
             font-weight: bold;
-            color: #ff6b9d;
-            text-shadow: 0 0 10px rgba(255, 105, 180, 0.8);
+            color: #fff;
         }
 
         .sparkle {
@@ -146,18 +149,6 @@
             }
         }
 
-        .click-instruction {
-            position: fixed;
-            bottom: 100px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 10;
-            color: rgba(255, 255, 255, 0.6);
-            font-size: 14px;
-            text-align: center;
-            pointer-events: none;
-        }
-
         .control-panel {
             position: fixed;
             bottom: 20px;
@@ -192,10 +183,53 @@
             transform: scale(0.95);
         }
 
+        .music-video-panel {
+            display: none;
+            position: fixed;
+            bottom: 85px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 12;
+            width: min(320px, calc(100vw - 24px));
+            padding: 10px;
+            color: white;
+            text-align: center;
+            background: rgba(22, 33, 62, 0.95);
+            border: 2px solid rgba(255, 105, 180, 0.6);
+            border-radius: 12px;
+            backdrop-filter: blur(5px);
+        }
+
+        .music-video-panel.active {
+            display: block;
+        }
+
+        .music-video-title {
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        #youtubePlayer,
+        #youtubePlayer iframe {
+            display: block;
+            width: 100% !important;
+            aspect-ratio: 16 / 9;
+        }
+
+        #youtubePlayer iframe {
+            height: auto !important;
+        }
+
+        .music-video-status {
+            margin-top: 6px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
         .gallery-btn {
             position: fixed;
-            top: 20px;
-            right: 20px;
+            bottom: 20px;
+            left: 20px;
             z-index: 15;
             background: rgba(255, 105, 180, 0.3);
             border: 2px solid rgba(255, 105, 180, 0.5);
@@ -207,6 +241,20 @@
             font-family: 'Georgia', serif;
             transition: all 0.3s ease;
             backdrop-filter: blur(5px);
+        }
+
+        .cat-link {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            z-index: 16;
+            width: 48px;
+            height: 48px;
+            padding: 0;
+            display: grid;
+            place-items: center;
+            font-size: 25px;
+            text-decoration: none;
         }
 
         .gallery-btn:hover {
@@ -299,6 +347,123 @@
             text-align: center;
             white-space: nowrap;
         }
+
+        @media (max-width: 600px) {
+            .days-counter {
+                top: 12px;
+                left: 50%;
+                right: auto;
+                transform: translateX(-50%);
+                max-width: calc(100vw - 24px);
+                padding: 9px 16px;
+                border-radius: 22px;
+                font-size: 16px;
+            }
+
+            .days-counter .number {
+                font-size: clamp(34px, 9vw, 42px);
+            }
+
+            .gallery-btn {
+                bottom: 12px;
+                left: 12px;
+                width: 48px;
+                height: 48px;
+                padding: 0;
+                display: grid;
+                place-items: center;
+                font-size: 24px;
+            }
+
+            .gallery-btn .gallery-label {
+                display: none;
+            }
+
+            .control-panel {
+                bottom: 12px;
+                left: 50%;
+                right: auto;
+                transform: translateX(-50%);
+                flex-wrap: nowrap;
+                gap: 8px;
+            }
+
+            .control-btn {
+                padding: 8px 6px;
+                font-size: 12px;
+                white-space: nowrap;
+            }
+
+            .cat-link {
+                right: 12px;
+                bottom: 12px;
+            }
+
+            .gallery-btn {
+                left: 12px;
+                bottom: 12px;
+            }
+
+            .gallery-btn,
+            .cat-link {
+                flex-shrink: 0;
+            }
+
+            .gallery-modal {
+                padding: 16px;
+            }
+
+            .gallery-content {
+                width: 100%;
+                max-width: 100%;
+                max-height: 100%;
+            }
+
+            .gallery-image {
+                display: block;
+                max-width: 100%;
+                max-height: 70vh;
+                margin: 0 auto;
+            }
+
+            .gallery-close {
+                top: 12px;
+                right: 12px;
+                z-index: 1;
+                padding: 10px 14px;
+                font-size: 16px;
+            }
+
+            .gallery-nav {
+                width: 44px;
+                height: 44px;
+                padding: 0;
+                font-size: 20px;
+            }
+
+            .gallery-prev {
+                left: 8px;
+            }
+
+            .gallery-next {
+                right: 8px;
+            }
+
+            .gallery-caption {
+                position: static;
+                transform: none;
+                margin-top: 12px;
+                font-size: 16px;
+                white-space: normal;
+            }
+        }
+
+        @media (max-width: 300px) {
+            .control-panel {
+                max-width: 150px;
+                flex-wrap: wrap;
+            }
+        }
     </style>
 </head>
 <body>
@@ -314,21 +479,33 @@
       </svg>
       
       <div class="days-counter">
-        We've been together for<br>
+        <span class="days-counter-title">Our time together</span>
         <span class="number" id="daysCounter">0</span> days
+        <!-- Date picker kept here for later, if you want to enable date editing:
+        <label class="start-date-label" for="startDateInput">Relationship start date</label>
+        <input class="start-date-input" id="startDateInput" type="date">
+        -->
       </div>
       
       <h2 class="main-text">
         I Love You So Much, Babe Ouksa!!
     </h2>
     
-    <p class="click-instruction">Click anywhere to add hearts ✨</p>
-    
-    <button class="gallery-btn" id="galleryBtn">📸 Gallery</button>
+    <button class="gallery-btn" id="galleryBtn" aria-label="Open photo gallery" title="Open photo gallery">
+        <span aria-hidden="true">🖼️</span>
+        <span class="gallery-label">Gallery</span>
+    </button>
     
     <div class="control-panel">
         <button class="control-btn" id="musicBtn">🎵 Play Music</button>
-        <button class="control-btn" id="nextTrackBtn">⏭️ Next Track</button>
+        <button class="control-btn" id="nextTrackBtn">Next Track</button>
+    </div>
+    <a class="control-btn cat-link" href="lottie-pet.html" aria-label="Open Lottie Cat" title="Open Lottie Cat">🐱</a>
+
+    <div class="music-video-panel" id="musicVideoPanel">
+        <div class="music-video-title">Love Shine — Leeheesang</div>
+        <div id="youtubePlayer"></div>
+        <div class="music-video-status" id="youtubeStatus">Loading YouTube player...</div>
     </div>
     
     <div class="gallery-modal" id="galleryModal">
@@ -384,16 +561,22 @@
 
     Frame();
 
-    // Days counter (set your relationship start date here)
-    const startDate = new Date('2022-10-09'); // CHANGE THIS DATE!
+    // Change this date to update the days-together counter.
+    const startDate = new Date(2022, 9, 9);
     function updateDaysCounter() {
-        const now = new Date();
-        const diff = now - startDate;
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        document.getElementById('daysCounter').textContent = days;
+        const currentDate = new Date();
+        currentDate.setHours(0, 0, 0, 0);
+        const days = Math.floor((currentDate - startDate) / (1000 * 60 * 60 * 24));
+        document.getElementById('daysCounter').textContent = Number.isFinite(days) && days >= 0 ? days : '—';
     }
     updateDaysCounter();
-    setInterval(updateDaysCounter, 1000);
+    setInterval(updateDaysCounter, 60 * 1000);
+    /*
+    Date picker behavior, saved locally:
+    - Restore the date input above.
+    - Read/write its YYYY-MM-DD value with localStorage.
+    - Recalculate the counter when its value changes.
+    */
 
     // Add sparkle effect
     function createSparkle(x, y) {
@@ -442,6 +625,7 @@
         }, 50);
     });
 
+    /*
     // Click to add hearts and sparkles
     document.addEventListener('click', (e) => {
         // Create multiple sparkles
@@ -456,6 +640,7 @@
         // Create floating heart
         createFloatingHeart(e.clientX, e.clientY);
     });
+    */
 
     // Random sparkles in background
     setInterval(() => {
@@ -468,39 +653,167 @@
     const musicTracks = [
         { name: "Romantic Piano", url: "https://cdn.pixabay.com/download/audio/2022/03/10/audio_c8c8a73467.mp3?filename=romantic-piano-164822.mp3" },
         { name: "Love Ballad", url: "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=romantic-piano-124980.mp3" },
-        { name: "Sweet Melody", url: "https://cdn.pixabay.com/download/audio/2022/02/07/audio_8b61449575.mp3?filename=romantic-piano-11166.mp3" }
+        // { name: "Love Shine — Leeheesang", youtubeId: "P_6VIOKGRgI" },
+        // { name: "Sweet Melody", url: "https://cdn.pixabay.com/download/audio/2022/02/07/audio_8b61449575.mp3?filename=romantic-piano-11166.mp3" },
+        // { name: "Sweet by Cas", url: "..."}
+
     ];
     
     let currentTrack = 0;
     const bgMusic = document.getElementById('bgMusic');
+    const musicBtn = document.getElementById('musicBtn');
+    const musicVideoPanel = document.getElementById('musicVideoPanel');
+    const youtubeStatus = document.getElementById('youtubeStatus');
     let isPlaying = false;
+    let youtubePlayer = null;
+    let youtubeApiReady = false;
+    let youtubeApiFailed = false;
+    let youtubePlayerReady = false;
+
+    function updateMusicButton() {
+        musicBtn.textContent = isPlaying ? '⏸️ Pause Music' : '🎵 Play Music';
+    }
+
+    function initializeYoutubePlayer() {
+        if (!youtubeApiReady || youtubePlayer || !musicVideoPanel.classList.contains('active')) {
+            return;
+        }
+
+        const youtubeVideoId = musicTracks[currentTrack].youtubeId;
+        if (!youtubeVideoId) {
+            return;
+        }
+
+        const playerVars = {
+            controls: 1,
+            playsinline: 1
+        };
+        if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+            playerVars.origin = window.location.origin;
+        }
+
+        youtubePlayer = new YT.Player('youtubePlayer', {
+            width: '320',
+            height: '180',
+            videoId: youtubeVideoId,
+            playerVars,
+            events: {
+                onReady: (event) => {
+                    youtubePlayerReady = true;
+                    youtubeStatus.textContent = 'Use the video controls or Play Music.';
+                    if (musicTracks[currentTrack].youtubeId === youtubeVideoId) {
+                        event.target.cueVideoById(youtubeVideoId);
+                    } else {
+                        event.target.pauseVideo();
+                    }
+                },
+                onStateChange: (event) => {
+                    if (!musicTracks[currentTrack].youtubeId) {
+                        return;
+                    }
+
+                    if (event.data === YT.PlayerState.PLAYING) {
+                        isPlaying = true;
+                        updateMusicButton();
+                    } else if (
+                        event.data === YT.PlayerState.PAUSED ||
+                        event.data === YT.PlayerState.ENDED
+                    ) {
+                        isPlaying = false;
+                        updateMusicButton();
+                    }
+                },
+                onError: () => {
+                    youtubeStatus.textContent = 'This video cannot be played here.';
+                }
+            }
+        });
+    }
+
+    window.onYouTubeIframeAPIReady = () => {
+        youtubeApiReady = true;
+        initializeYoutubePlayer();
+    };
+
+    const youtubeApiScript = document.createElement('script');
+    youtubeApiScript.src = 'https://www.youtube.com/iframe_api';
+    youtubeApiScript.addEventListener('error', () => {
+        youtubeApiFailed = true;
+        if (musicTracks[currentTrack].youtubeId) {
+            youtubeStatus.textContent = 'Could not load YouTube. Check your internet connection.';
+        }
+    });
+    document.head.appendChild(youtubeApiScript);
 
     function loadTrack(index) {
-        bgMusic.src = musicTracks[index].url;
+        const track = musicTracks[index];
+        if (track.youtubeId) {
+            bgMusic.pause();
+            musicVideoPanel.classList.add('active');
+            youtubeStatus.textContent = youtubeApiFailed
+                ? 'Could not load YouTube. Check your internet connection.'
+                : 'Loading YouTube player...';
+            initializeYoutubePlayer();
+            if (youtubePlayerReady) {
+                if (isPlaying) {
+                    youtubePlayer.loadVideoById(track.youtubeId);
+                } else {
+                    youtubePlayer.cueVideoById(track.youtubeId);
+                }
+            } else {
+                isPlaying = false;
+                updateMusicButton();
+            }
+            return;
+        }
+
+        musicVideoPanel.classList.remove('active');
+        if (youtubePlayerReady) {
+            youtubePlayer.pauseVideo();
+        }
+        bgMusic.src = track.url;
+        if (isPlaying) {
+            bgMusic.play();
+        }
     }
 
     loadTrack(0);
 
     // Music control
-    document.getElementById('musicBtn').addEventListener('click', () => {
+    musicBtn.addEventListener('click', () => {
+        if (musicTracks[currentTrack].youtubeId) {
+            if (!youtubePlayerReady) {
+                youtubeStatus.textContent = youtubeApiFailed
+                    ? 'Could not load YouTube. Check your internet connection.'
+                    : 'Player is loading. Please try Play Music again shortly.';
+                initializeYoutubePlayer();
+                return;
+            }
+
+            if (isPlaying) {
+                youtubePlayer.pauseVideo();
+            } else {
+                youtubePlayer.playVideo();
+                isPlaying = true;
+                updateMusicButton();
+            }
+            return;
+        }
+
         if (isPlaying) {
             bgMusic.pause();
-            document.getElementById('musicBtn').textContent = '🎵 Play Music';
             isPlaying = false;
         } else {
             bgMusic.play();
-            document.getElementById('musicBtn').textContent = '⏸️ Pause Music';
             isPlaying = true;
         }
+        updateMusicButton();
     });
 
     // Next track
     document.getElementById('nextTrackBtn').addEventListener('click', () => {
         currentTrack = (currentTrack + 1) % musicTracks.length;
         loadTrack(currentTrack);
-        if (isPlaying) {
-            bgMusic.play();
-        }
     });
 
     // Set music volume
@@ -508,10 +821,15 @@
 
     // Photo Gallery
     const galleryImages = [
-        { src: "https://via.placeholder.com/800x600/ff6b9d/ffffff?text=Photo+1", caption: "Our First Date 💕" },
-        { src: "https://via.placeholder.com/800x600/c44569/ffffff?text=Photo+2", caption: "Beautiful Memories 🌟" },
-        { src: "https://via.placeholder.com/800x600/ff8a5c/ffffff?text=Photo+3", caption: "Special Moments ✨" },
-        { src: "https://via.placeholder.com/800x600/e03776/ffffff?text=Photo+4", caption: "Forever Together 💖" }
+        { src: "./images/BeautyPlus-photo_booth-2026-05-03T06_39_59.png", caption: "A memory from May 3, 2026 💕" },
+        { src: "./images/BeautyPlus-photo_booth-2026-04-25T07_20_13.png", caption: "A memory from April 25, 2026 🌟" },
+        { src: "./images/BeautyPlus-photo_booth-2026-04-04T06_15_08.png", caption: "A memory from April 4, 2026 ✨" },
+        { src: "./images/BeautyPlus-photo_booth-2026-04-04T06_13_18.png", caption: "A memory from April 4, 2026 💖" },
+        { src: "./images/BeautyPlus-photo_booth-2026-04-04T06_09_49.png", caption: "A memory from April 4, 2026 💕" },
+        { src: "./images/BeautyPlus-photo_booth-2026-04-04T06_07_26.png", caption: "A memory from April 4, 2026 🌟" },
+        { src: "./images/BeautyPlus-photo_booth-2026-04-04T06_02_34.png", caption: "A memory from April 4, 2026 ✨" },
+        { src: "./images/BeautyPlus-photo_booth-2026-04-04T06_00_50.png", caption: "A memory from April 4, 2026 💖" },
+        { src: "./images/BeautyPlus-photo_booth-2026-04-04T05_56_41.png", caption: "A memory from April 4, 2026 💕" }
     ];
 
     let currentImageIndex = 0;
