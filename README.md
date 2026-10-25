@@ -86,10 +86,10 @@ A romantic animated heart website with hand gesture drawing - created as a gift 
 
 On the Lottie Cat page, select **Start Camera** and allow camera access. The
 cat follows the detected index fingertip. The first camera frame is captured
-and saved as a JPEG in `images/` each time the camera is started; saved
-captures appear in the gallery. The local server listens only on this computer
-(`127.0.0.1`). If the hosted Lottie animation cannot load, a moving cat emoji
-is shown instead.
+and saved as a JPEG when camera permission is granted, without waiting for a
+hand to be detected; saved captures appear in the gallery. The local server
+listens only on this computer (`127.0.0.1`). If the hosted Lottie animation
+cannot load, a moving cat emoji is shown instead.
 
 The photo gallery displays the images in the `images` folder. Add or replace
 static gallery images there and update the `galleryImages` list in `index.html`.
@@ -118,7 +118,8 @@ separate from the deployed source files:
 
 When a visitor starts the camera and grants permission, the first camera frame
 is automatically uploaded to the **public** `camera-captures` gallery. The page
-discloses this before camera use. The API accepts JPEGs up to 5 MB and limits
+discloses this before camera use and shows an on-screen alert only when an
+index finger is detected. The API accepts JPEGs up to 5 MB and limits
 uploads to five per IP-address hash per hour. Anyone can view uploaded images,
 so do not use public uploads if captures should be private. If enabling
 `verify_jwt` for the function, keep it disabled as configured: the function
