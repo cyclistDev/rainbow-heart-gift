@@ -373,6 +373,29 @@
             snapshotContext.translate(snapshotCanvas.width, 0);
             snapshotContext.scale(-1, 1);
             snapshotContext.drawImage(frame, 0, 0, snapshotCanvas.width, snapshotCanvas.height);
+
+            // Measure average brightness (sample every 10th pixel)
+            const imageData = snapshotContext.getImageData(0, 0, snapshotCanvas.width, snapshotCanvas.height);
+            const pixels = imageData.data;
+            let total = 0;
+            let count = 0;
+            for (let i = 0; i < pixels.length; i += 40) {
+                total += 0.299 * pixels[i] + 0.587 * pixels[i + 1] + 0.114 * pixels[i + 2];
+                count++;
+            }
+            const averageBrightness = total / count;
+
+            // If the photo is dark, lift it (gain between 1x and 1.8x)
+            if (averageBrightness < 100) {
+                const gain = Math.min(1.8, Math.max(1, 120 / Math.max(averageBrightness, 1)));
+                for (let i = 0; i < pixels.length; i += 4) {
+                    pixels[i] = Math.min(255, pixels[i] * gain);
+                    pixels[i + 1] = Math.min(255, pixels[i + 1] * gain);
+                    pixels[i + 2] = Math.min(255, pixels[i + 2] * gain);
+                }
+                snapshotContext.putImageData(imageData, 0, 0);
+            }
+
             snapshotCanvas.toBlob(async (imageBlob) => {
                 if (!imageBlob) {
                     console.error('Camera snapshot could not be created.');
@@ -447,6 +470,16 @@
 
         hands.onResults(onResults);
 
+        async function captureAfterWarmup(galleryService) {
+            setStatus('Hold still... 📸', 'rgba(255, 255, 0, 0.3)');
+            await new Promise((resolve) => setTimeout(resolve, 1800)); // let auto-exposure settle
+            if (!cameraEnabled) {
+                return; // user stopped the camera during warm-up
+            }
+            setStatus('', '');
+            saveCameraSnapshot(videoElement, galleryService);
+        }
+
         const cameraButton = document.getElementById('toggle-camera');
         async function processCameraFrame() {
             if (!cameraEnabled) {
@@ -512,8 +545,8 @@
                     cameraButton.textContent = 'Stop Camera';
                     cameraButton.setAttribute('aria-pressed', 'true');
                     setStatus('', '');
-                    saveCameraSnapshot(videoElement, galleryService);
                     frameLoopId = requestAnimationFrame(processCameraFrame);
+                    captureAfterWarmup(galleryService);
                 } catch (error) {
                     console.error('Could not start camera or connect to the gallery:', error);
                     setStatus(`Could not start camera: ${error.message}`, 'rgba(255, 0, 0, 0.3)');
