@@ -832,14 +832,42 @@
         { src: "./images/BeautyPlus-photo_booth-2026-04-04T05_56_41.png", caption: "A memory from April 4, 2026 💕" }
     ];
 
+    async function loadSavedCameraCaptures() {
+        if (location.protocol === 'file:') {
+            return;
+        }
+        const response = await fetch('/api/gallery');
+        if (!response.ok) {
+            throw new Error(`Gallery request failed with status ${response.status}`);
+        }
+        const result = await response.json();
+        const knownSources = new Set(galleryImages.map((image) => image.src));
+        const savedCaptures = Array.isArray(result.images)
+            ? result.images.filter((image) =>
+                image &&
+                typeof image.src === 'string' &&
+                image.src.startsWith('/images/camera_capture_') &&
+                typeof image.caption === 'string' &&
+                !knownSources.has(image.src)
+            )
+            : [];
+        galleryImages.unshift(...savedCaptures);
+    }
+
     let currentImageIndex = 0;
     const galleryModal = document.getElementById('galleryModal');
     const galleryImage = document.getElementById('galleryImage');
     const galleryCaption = document.getElementById('galleryCaption');
 
-    document.getElementById('galleryBtn').addEventListener('click', (e) => {
+    document.getElementById('galleryBtn').addEventListener('click', async (e) => {
         e.stopPropagation();
+        try {
+            await loadSavedCameraCaptures();
+        } catch (error) {
+            console.error('Could not load saved camera photos:', error);
+        }
         galleryModal.classList.add('active');
+        currentImageIndex = 0;
         updateGalleryImage();
     });
 

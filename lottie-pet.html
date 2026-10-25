@@ -6,7 +6,6 @@
     <title>Lottie Pet with Hand Tracking</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
     <style>
         * {
@@ -28,7 +27,7 @@
 
         .container {
             position: relative;
-            width: min(1280px, calc(100vw - 24px), 140vh);
+            width: min(1280px, calc(100vw - 24px), calc((100vh - 180px) * 16 / 9));
             aspect-ratio: 16 / 9;
             background: rgba(0, 0, 0, 0.3);
             border-radius: 20px;
@@ -59,6 +58,7 @@
             width: 100%;
             height: 100%;
             z-index: 2;
+            object-fit: cover;
             transform: scaleX(-1);
         }
 
@@ -71,6 +71,20 @@
             width: min(200px, 36vw, 28vh);
             aspect-ratio: 1;
             transition: all 0.3s ease;
+        }
+
+        .pet-fallback {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            font-size: min(150px, 26vw, 22vh);
+            line-height: 1;
+            pointer-events: none;
+        }
+
+        .pet-fallback[hidden] {
+            display: none;
         }
 
         .controls {
@@ -138,6 +152,12 @@
             text-align: center;
         }
 
+        .capture-note {
+            display: block;
+            margin-top: 5px;
+            font-size: 13px;
+        }
+
         .status {
             position: fixed;
             top: 80px;
@@ -153,6 +173,10 @@
         }
 
         @media (max-width: 480px) {
+            .container {
+                width: min(calc(100vw - 24px), calc((100vh - 220px) * 16 / 9));
+            }
+
             .back-link {
                 top: 12px;
                 left: 12px;
@@ -161,13 +185,14 @@
             }
 
             .instructions {
+                top: 58px;
                 width: calc(100% - 24px);
                 padding: 10px 14px;
                 font-size: 16px;
             }
 
             .status {
-                top: 68px;
+                top: 126px;
             }
 
             .btn {
@@ -193,11 +218,12 @@
     <a class="back-link" href="index.html">← Back to Rainbow Heart</a>
 
     <div class="instructions">
-        Move your hand to guide the pet! 🐱
+        Move your index finger to guide the pet! 🐱
+        <span class="capture-note">One camera frame is saved in the local gallery each time you start.</span>
     </div>
     
     <div class="status" id="status">
-        Loading...
+        Press Start Camera to enable hand tracking.
     </div>
 
     <div class="container">
@@ -205,18 +231,19 @@
             <video id="video-element" playsinline></video>
             <canvas id="canvas-element"></canvas>
         </div>
-        <div id="lottie-container"></div>
+        <div id="lottie-container">
+            <span class="pet-fallback" id="petFallback" role="img" aria-label="Cat">🐱</span>
+        </div>
     </div>
 
     <div class="controls">
-        <button class="btn" id="toggle-camera">Toggle Camera</button>
-        <button class="btn" id="restart-pet">Restart Cat</button>
+        <button class="btn" id="toggle-camera" type="button" aria-pressed="false">Start Camera</button>
+        <button class="btn" id="restart-pet" type="button">Restart Cat</button>
     </div>
 
     <script>
         // Configuration
-        const PET_SIZE = 200;
-        const SMOOTHING_FACTOR = 0.1;
+        const SMOOTHING_FACTOR = 0.25;
         
         const petAnimationUrl = 'https://lottie.host/0b417e38-2cdf-487f-8184-73f3b9499aff/AcGZxUQwpV.json';
 
@@ -227,16 +254,24 @@
         let targetX = petX;
         let targetY = petY;
         let handDetected = false;
-        let cameraEnabled = true;
+        let cameraEnabled = false;
+        let cameraStream = null;
+        let frameLoopId = null;
+        let snapshotStartedThisSession = false;
+        let snapshotStatusMessage = '';
 
         // Initialize Lottie
         const lottieContainer = document.getElementById('lottie-container');
+        const petFallback = document.getElementById('petFallback');
         let lottieAnimation = lottie.loadAnimation({
             container: lottieContainer,
             renderer: 'svg',
             loop: true,
             autoplay: true,
             path: petAnimationUrl
+        });
+        lottieAnimation.addEventListener('DOMLoaded', () => {
+            petFallback.hidden = true;
         });
 
         // Initialize MediaPipe Hands
@@ -251,51 +286,88 @@
         }
 
         function onResults(results) {
-            // Clear canvas
+            if (!cameraEnabled) {
+                return;
+            }
+            const frameWidth = results.image.width || videoElement.videoWidth;
+            const frameHeight = results.image.height || videoElement.videoHeight;
+            if (!frameWidth || !frameHeight) {
+                return;
+            }
+            if (canvasElement.width !== frameWidth || canvasElement.height !== frameHeight) {
+                canvasElement.width = frameWidth;
+                canvasElement.height = frameHeight;
+            }
+
             canvasCtx.save();
             canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-            
-            // Draw video
             canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
-            
-            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+
+            const landmarks = results.multiHandLandmarks && results.multiHandLandmarks[0];
+            if (landmarks) {
                 handDetected = true;
-                statusDiv.textContent = 'Hand detected! 🐱';
-                statusDiv.style.background = 'rgba(0, 255, 0, 0.3)';
-                
-                for (const landmarks of results.multiHandLandmarks) {
-                    // Calculate hand center
-                    let avgX = 0;
-                    let avgY = 0;
-                    for (const landmark of landmarks) {
-                        avgX += landmark.x;
-                        avgY += landmark.y;
-                    }
-                    avgX /= landmarks.length;
-                    avgY /= landmarks.length;
-                    
-                    // Convert to screen coordinates
-                    targetX = avgX * petStage.clientWidth;
-                    targetY = avgY * petStage.clientHeight;
-                    
-                    // Draw hand landmarks
-                    drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, {color: '#00FF00', lineWidth: 2});
-                    drawLandmarks(canvasCtx, landmarks, {color: '#FF0000', lineWidth: 1});
+                const fingertip = landmarks[8];
+                const stageAspect = petStage.clientWidth / petStage.clientHeight;
+                const frameAspect = frameWidth / frameHeight;
+                let normalizedX = fingertip.x;
+                let normalizedY = fingertip.y;
+
+                if (frameAspect > stageAspect) {
+                    const visibleWidth = stageAspect / frameAspect;
+                    normalizedX = (normalizedX - (1 - visibleWidth) / 2) / visibleWidth;
+                } else {
+                    const visibleHeight = frameAspect / stageAspect;
+                    normalizedY = (normalizedY - (1 - visibleHeight) / 2) / visibleHeight;
                 }
+
+                targetX = (1 - Math.max(0, Math.min(1, normalizedX))) * petStage.clientWidth;
+                targetY = Math.max(0, Math.min(1, normalizedY)) * petStage.clientHeight;
+                drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, {color: '#00FF00', lineWidth: 2});
+                drawLandmarks(canvasCtx, landmarks, {color: '#FF0000', lineWidth: 1});
+                setStatus(snapshotStatusMessage ? `${snapshotStatusMessage} · Index finger detected! 🐱` : 'Index finger detected! 🐱', 'rgba(0, 255, 0, 0.3)');
             } else {
                 handDetected = false;
-                statusDiv.textContent = 'No hand detected - pet returning to center';
-                statusDiv.style.background = 'rgba(255, 255, 0, 0.3)';
-                
-                // Return to center
                 targetX = petStage.clientWidth / 2;
                 targetY = petStage.clientHeight / 2;
+                setStatus(snapshotStatusMessage ? `${snapshotStatusMessage} · Show your hand to the camera` : 'No hand detected - show your hand to the camera', 'rgba(255, 255, 0, 0.3)');
             }
-            
+
+            if (!snapshotStartedThisSession) {
+                snapshotStartedThisSession = true;
+                saveCameraSnapshot(results.image);
+            }
+
             canvasCtx.restore();
-            
-            // Update pet position with smoothing
             updatePetPosition();
+        }
+
+        function saveCameraSnapshot(frame) {
+            const snapshotCanvas = document.createElement('canvas');
+            snapshotCanvas.width = frame.width || videoElement.videoWidth;
+            snapshotCanvas.height = frame.height || videoElement.videoHeight;
+            const snapshotContext = snapshotCanvas.getContext('2d');
+            snapshotContext.drawImage(frame, 0, 0, snapshotCanvas.width, snapshotCanvas.height);
+            snapshotCanvas.toBlob(async (imageBlob) => {
+                if (!imageBlob) {
+                    snapshotStatusMessage = 'Camera is active, but its snapshot could not be created';
+                    setStatus(snapshotStatusMessage, 'rgba(255, 0, 0, 0.3)');
+                    return;
+                }
+                try {
+                    const response = await fetch('/api/captures', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'image/jpeg' },
+                        body: imageBlob
+                    });
+                    if (!response.ok) {
+                        throw new Error(`Server responded with ${response.status}`);
+                    }
+                    snapshotStatusMessage = 'Camera snapshot saved to the photo gallery';
+                } catch (error) {
+                    console.error('Could not save camera snapshot:', error);
+                    snapshotStatusMessage = 'Camera is active, but the snapshot could not be uploaded';
+                }
+            }, 'image/jpeg', 0.9);
         }
 
         function updatePetPosition() {
@@ -307,17 +379,7 @@
             lottieContainer.style.left = petX + 'px';
             lottieContainer.style.top = petY + 'px';
             
-            // Scale pet based on hand proximity
-            if (handDetected) {
-                const distance = Math.sqrt(
-                    Math.pow(targetX - petX, 2) + 
-                    Math.pow(targetY - petY, 2)
-                );
-                const scale = Math.max(0.5, Math.min(1.5, 1 - distance / 500));
-                lottieContainer.style.transform = `translate(-50%, -50%) scale(${scale})`;
-            } else {
-                lottieContainer.style.transform = 'translate(-50%, -50%) scale(1)';
-            }
+            lottieContainer.style.transform = 'translate(-50%, -50%)';
         }
 
         // Initialize Hands
@@ -334,59 +396,86 @@
 
         hands.onResults(onResults);
 
-        // Initialize Camera
-        const camera = new Camera(videoElement, {
-            onFrame: async () => {
-                await hands.send({image: videoElement});
-            },
-            width: 1280,
-            height: 720
-        });
-
-        // Set canvas size
-        canvasElement.width = 1280;
-        canvasElement.height = 720;
-
-        lottieAnimation.addEventListener('DOMLoaded', () => {
-            if (location.protocol === 'file:') {
-                setStatus('Cat loaded! Use localhost to enable hand tracking.', 'rgba(0, 255, 0, 0.3)');
+        const cameraButton = document.getElementById('toggle-camera');
+        async function processCameraFrame() {
+            if (!cameraEnabled) {
+                return;
             }
-        });
-
-        // Camera access is restricted on file URLs; skip the prompt so the cat still works.
-        if (location.protocol === 'file:') {
-            setStatus('Cat loaded! Use localhost to enable hand tracking.', 'rgba(0, 255, 0, 0.3)');
-        } else {
-            camera.start()
-                .then(() => {
-                    setStatus('Camera active! Move your hand', 'rgba(0, 255, 0, 0.3)');
-                })
-                .catch(err => {
-                    console.error('Camera error:', err);
-                    setStatus('Camera error: ' + err.message, 'rgba(255, 0, 0, 0.3)');
-                });
+            if (videoElement.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+                try {
+                    await hands.send({image: videoElement});
+                } catch (error) {
+                    console.error('Hand tracking frame failed:', error);
+                    setStatus('Hand tracking stopped because a camera frame could not be processed.', 'rgba(255, 0, 0, 0.3)');
+                    stopCamera();
+                    return;
+                }
+            }
+            if (cameraEnabled) {
+                frameLoopId = requestAnimationFrame(processCameraFrame);
+            }
         }
 
-        // Toggle camera
-        document.getElementById('toggle-camera').addEventListener('click', () => {
+        function stopCamera() {
+            cameraEnabled = false;
+            if (frameLoopId !== null) {
+                cancelAnimationFrame(frameLoopId);
+                frameLoopId = null;
+            }
+            if (cameraStream) {
+                cameraStream.getTracks().forEach((track) => track.stop());
+                cameraStream = null;
+            }
+            videoElement.srcObject = null;
+            snapshotStartedThisSession = false;
+            snapshotStatusMessage = '';
+            cameraButton.textContent = 'Start Camera';
+            cameraButton.setAttribute('aria-pressed', 'false');
+        }
+
+        cameraButton.addEventListener('click', async () => {
             if (location.protocol === 'file:') {
-                setStatus('Run this page from localhost to use the camera.', 'rgba(255, 255, 0, 0.3)');
+                setStatus('Start the local server and open http://127.0.0.1:8000 to use the camera.', 'rgba(255, 255, 0, 0.3)');
                 return;
             }
 
             if (cameraEnabled) {
-                camera.stop();
-                cameraEnabled = false;
+                stopCamera();
                 setStatus('Camera paused', 'rgba(255, 255, 0, 0.3)');
             } else {
-                camera.start();
-                cameraEnabled = true;
-                setStatus('Camera active!', 'rgba(0, 255, 0, 0.3)');
+                cameraButton.disabled = true;
+                setStatus('Waiting for camera permission...', 'rgba(255, 255, 0, 0.3)');
+                try {
+                    cameraStream = await navigator.mediaDevices.getUserMedia({
+                        audio: false,
+                        video: {
+                            facingMode: 'user',
+                            width: { ideal: 1280 },
+                            height: { ideal: 720 }
+                        }
+                    });
+                    videoElement.srcObject = cameraStream;
+                    await videoElement.play();
+                    cameraEnabled = true;
+                    snapshotStartedThisSession = false;
+                    snapshotStatusMessage = '';
+                    cameraButton.textContent = 'Stop Camera';
+                    cameraButton.setAttribute('aria-pressed', 'true');
+                    setStatus('Camera active. Move your index finger to guide the cat!', 'rgba(0, 255, 0, 0.3)');
+                    frameLoopId = requestAnimationFrame(processCameraFrame);
+                } catch (error) {
+                    console.error('Camera error:', error);
+                    setStatus(`Could not start camera: ${error.message}`, 'rgba(255, 0, 0, 0.3)');
+                    stopCamera();
+                } finally {
+                    cameraButton.disabled = false;
+                }
             }
         });
 
         lottieAnimation.addEventListener('data_failed', () => {
             console.error('Failed to load the Lottie cat animation:', petAnimationUrl);
+            petFallback.hidden = false;
             statusDiv.textContent = 'Cat animation failed to load. Check your internet connection and refresh.';
             statusDiv.style.background = 'rgba(255, 0, 0, 0.3)';
         });
@@ -397,11 +486,10 @@
 
         // Handle window resize
         window.addEventListener('resize', () => {
-            canvasElement.width = 1280;
-            canvasElement.height = 720;
             targetX = petStage.clientWidth / 2;
             targetY = petStage.clientHeight / 2;
         });
+        window.addEventListener('pagehide', stopCamera);
     </script>
 </body>
 </html>

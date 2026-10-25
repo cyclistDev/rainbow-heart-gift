@@ -66,6 +66,7 @@ A romantic animated heart website with hand gesture drawing - created as a gift 
 ## Files
 
 - **index.html** - Main website with animated hearts and interactive features
+- **serve_rainbow_heart.py** - Local web server for camera access and saving captures into the gallery
 - **ani.js** - Additional heart animation utilities (bursts, showers)
 - **cmrdraw.py** - Two-hand gesture drawing app with adjustable tools and canvas history
 - **style.css** - Reference file (styles now embedded in HTML)
@@ -73,16 +74,22 @@ A romantic animated heart website with hand gesture drawing - created as a gift 
 ## How to Use
 
 ### Web Version
-1. For YouTube playback, run the project from a local web server (for example, run `python -m http.server 8000` in the project folder and open `http://localhost:8000`). YouTube also requires an internet connection.
+1. Run `python serve_rainbow_heart.py` from the project folder and open `http://127.0.0.1:8000`. This local server enables camera access and saves camera captures in the `images` folder. YouTube and the Lottie/hand-tracking libraries also require an internet connection.
 2. Click the "🎵 Play Music" button to start romantic background music
 3. Click "⏭️ Next Track" to cycle through the playlist, including "Love Shine — Leeheesang"; its YouTube player appears when selected
 4. Move your mouse to see the trail effect
 5. To change the relationship start date, edit `startDate` in `index.html`
 6. Enjoy the animated hearts, pulsing text, and romantic music!
 
-The photo gallery displays the images stored in the `images` folder. Add or
-replace files there and update the `galleryImages` list in `index.html` to
-change the gallery.
+On the Lottie Cat page, select **Start Camera** and allow camera access. The
+cat follows the detected index fingertip. The first camera frame is captured
+and saved as a JPEG in `images/` each time the camera is started; saved
+captures appear in the gallery. The local server listens only on this computer
+(`127.0.0.1`). If the hosted Lottie animation cannot load, a moving cat emoji
+is shown instead.
+
+The photo gallery displays the images in the `images` folder. Add or replace
+static gallery images there and update the `galleryImages` list in `index.html`.
 
 ### Python Drawing App - Hand Gesture Control
 1. Install dependencies:
