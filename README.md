@@ -125,6 +125,13 @@ so do not use public uploads if captures should be private. If enabling
 validates a public publishable/anon key itself and uses the server-side secret
 key for storage access.
 
+Uploaded images do **not** appear in GitHub or this repository's `images/`
+folder. In Supabase, open **Storage → camera-captures** to view the objects.
+The bucket is created by `supabase db push`; captures are uploaded there by the
+Edge Function. The function URL is checked before camera permission is
+requested, so a missing config file, undeployed function, or unavailable bucket
+is reported before the camera starts.
+
 ### Python Drawing App - Hand Gesture Control
 1. Install dependencies:
    ```bash

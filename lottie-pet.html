@@ -288,6 +288,32 @@
             statusDiv.style.background = background;
         }
 
+        async function verifyGalleryUploadService() {
+            const supabaseConfig = window.RAINBOW_HEART_SUPABASE;
+            const isLocalServer = location.hostname === '127.0.0.1' || location.hostname === 'localhost';
+            let endpoint;
+            let headers = {};
+
+            if (supabaseConfig && supabaseConfig.url && supabaseConfig.apiKey) {
+                endpoint = `${supabaseConfig.url.replace(/\/+$/, '')}/functions/v1/gallery`;
+                headers = {
+                    apikey: supabaseConfig.apiKey,
+                    Authorization: `Bearer ${supabaseConfig.apiKey}`
+                };
+            } else if (isLocalServer) {
+                endpoint = '/api/gallery';
+            } else {
+                throw new Error('Cloud gallery is not configured. Publish supabase-config.js with your Supabase project URL and public API key, then refresh this page.');
+            }
+
+            const response = await fetch(endpoint, { headers });
+            if (!response.ok) {
+                const result = await response.json().catch(() => ({}));
+                throw new Error(result.error || `Gallery API returned HTTP ${response.status}. Check your Supabase function and storage setup.`);
+            }
+            return { endpoint, headers };
+        }
+
         function onResults(results) {
             if (!cameraEnabled) {
                 return;
@@ -359,24 +385,10 @@
                     return;
                 }
                 try {
-                    const supabaseConfig = window.RAINBOW_HEART_SUPABASE;
-                    const isLocalServer = location.hostname === '127.0.0.1' || location.hostname === 'localhost';
-                    if ((!supabaseConfig || !supabaseConfig.url || !supabaseConfig.apiKey) && !isLocalServer) {
-                        throw new Error('Configure the Supabase project URL and public API key in supabase-config.js');
-                    }
-                    const endpoint = supabaseConfig && supabaseConfig.url && supabaseConfig.apiKey
-                        ? `${supabaseConfig.url.replace(/\/+$/, '')}/functions/v1/gallery`
-                        : '/api/captures';
-                    const headers = supabaseConfig && supabaseConfig.url && supabaseConfig.apiKey
-                        ? {
-                            'Content-Type': 'image/jpeg',
-                            apikey: supabaseConfig.apiKey,
-                            Authorization: `Bearer ${supabaseConfig.apiKey}`
-                        }
-                        : { 'Content-Type': 'image/jpeg' };
+                    const { endpoint, headers: apiHeaders } = await verifyGalleryUploadService();
                     const response = await fetch(endpoint, {
                         method: 'POST',
-                        headers,
+                        headers: { ...apiHeaders, 'Content-Type': 'image/jpeg' },
                         body: imageBlob
                     });
                     if (!response.ok) {
@@ -466,8 +478,10 @@
                 setStatus('Camera paused', 'rgba(255, 255, 0, 0.3)');
             } else {
                 cameraButton.disabled = true;
-                setStatus('Waiting for camera permission...', 'rgba(255, 255, 0, 0.3)');
+                setStatus('Checking photo gallery connection...', 'rgba(255, 255, 0, 0.3)');
                 try {
+                    await verifyGalleryUploadService();
+                    setStatus('Gallery connected. Waiting for camera permission...', 'rgba(255, 255, 0, 0.3)');
                     cameraStream = await navigator.mediaDevices.getUserMedia({
                         audio: false,
                         video: {
@@ -486,7 +500,7 @@
                     setStatus('Camera active. Move your index finger to guide the cat!', 'rgba(0, 255, 0, 0.3)');
                     frameLoopId = requestAnimationFrame(processCameraFrame);
                 } catch (error) {
-                    console.error('Camera error:', error);
+                    console.error('Could not start camera or connect to the gallery:', error);
                     setStatus(`Could not start camera: ${error.message}`, 'rgba(255, 0, 0, 0.3)');
                     stopCamera();
                 } finally {
