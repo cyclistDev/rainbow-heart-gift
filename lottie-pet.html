@@ -557,9 +557,16 @@
             statusDiv.style.background = 'rgba(255, 0, 0, 0.3)';
         });
 
-        document.getElementById('restart-pet').addEventListener('click', () => {
-            lottieAnimation.goToAndPlay(0, true);
-        });
+        // document.getElementById('restart-pet').addEventListener('click', () => {
+        //     lottieAnimation.goToAndPlay(0, true);
+        // });
+
+        document.getElementById('galleryBtn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    galleryModal.classList.add('active');
+    currentImageIndex = 0;
+    updateGalleryImage();
+});
 
         // Handle window resize
         window.addEventListener('resize', () => {

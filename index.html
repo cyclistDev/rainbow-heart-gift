@@ -487,9 +487,7 @@
         -->
       </div>
       
-      <h2 class="main-text">
-        I Love You So Much, Babe Ouksa!!
-    </h2>
+      <h2 class="main-text" id="love-text"></h2>
     
     <button class="gallery-btn" id="galleryBtn" aria-label="Open photo gallery" title="Open photo gallery">
         <span aria-hidden="true">🖼️</span>
@@ -522,6 +520,22 @@
 
 </body>
 
+//build authentication overlay and sign-out button
+<div id="auth-overlay" style="position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.8);">
+  <div style="background:#fff;color:#222;padding:24px;border-radius:12px;width:min(320px,90vw);font-family:sans-serif;">
+    <h3 id="auth-title" style="margin:0 0 12px;">Sign in</h3>
+    <input id="auth-name" placeholder="Your name" maxlength="30" style="display:none;width:100%;margin-bottom:8px;padding:8px;">
+    <input id="auth-email" type="email" placeholder="Email" style="width:100%;margin-bottom:8px;padding:8px;">
+    <input id="auth-password" type="password" placeholder="Password" style="width:100%;margin-bottom:8px;padding:8px;">
+    <button id="auth-submit" style="width:100%;padding:10px;">Sign in</button>
+    <p id="auth-message" style="color:#c00;font-size:13px;min-height:18px;margin:8px 0;"></p>
+    <a href="#" id="auth-toggle" style="font-size:13px;">Create account</a>
+  </div>
+</div>
+<button id="sign-out" style="display:none;position:fixed;top:8px;right:8px;z-index:9000;padding:6px 12px;">Sign out</button>
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
     <script src="supabase-config.js"></script>
     <script>
     const colors = ["#e03776","#8f3e98","#4687bf","#3bab6f","#f9c25e","#f47274","#ff6b9d","#c44569","#ff8a5c","#ff3c83"];
@@ -933,4 +947,114 @@
     });
 
 </script>
+
+//handle authentication and personalized messages using Supabase
+
+<script>
+(function () {
+  const ORIGINAL_TEXT = 'I Love You So Much, Babe Ouksa!!';
+  const loveText = document.getElementById('love-text');
+  const cfg = window.RAINBOW_HEART_SUPABASE;
+  if (!cfg || !cfg.url || !cfg.apiKey || !window.supabase) {
+    loveText.textContent = ORIGINAL_TEXT; // no config: keep the page working
+    return;
+  }
+  const sb = window.supabase.createClient(cfg.url, cfg.apiKey);
+
+  const overlay = document.getElementById('auth-overlay');
+  const nameInput = document.getElementById('auth-name');
+  const emailInput = document.getElementById('auth-email');
+  const passInput = document.getElementById('auth-password');
+  const submitBtn = document.getElementById('auth-submit');
+  const toggleLink = document.getElementById('auth-toggle');
+  const title = document.getElementById('auth-title');
+  const message = document.getElementById('auth-message');
+  const signOutBtn = document.getElementById('sign-out');
+  let signUpMode = false;
+
+  const messages = [
+    (n) => `Have a nice day, ${n}. I really like you.`,
+    (n) => `${n}, you make this place brighter.`,
+    (n) => `Hi ${n}! Wishing you a happy day.`,
+    (n) => `${n}, you're awesome. Keep smiling.`,
+    (n) => `Sending you a rainbow, ${n}.`
+  ];
+
+  function pickIndex() {
+    try {
+      const saved = sessionStorage.getItem('msgIndex');
+      if (saved !== null && messages[Number(saved)]) return Number(saved);
+    } catch (e) {}
+    const index = Math.floor(Math.random() * messages.length);
+    try { sessionStorage.setItem('msgIndex', String(index)); } catch (e) {}
+    return index;
+  }
+
+  function showText(session) {
+    if (!session) { loveText.textContent = ''; return; }
+    const meta = session.user.user_metadata || {};
+    const name = (meta.display_name || '').trim() || 'friend';
+    loveText.textContent = name.toLowerCase() === 'ouksa'
+      ? ORIGINAL_TEXT
+      : messages[pickIndex()](name);
+  }
+
+  function setMode(isSignUp) {
+    signUpMode = isSignUp;
+    nameInput.style.display = isSignUp ? 'block' : 'none';
+    title.textContent = isSignUp ? 'Create account' : 'Sign in';
+    submitBtn.textContent = isSignUp ? 'Create account' : 'Sign in';
+    toggleLink.textContent = isSignUp ? 'Back to sign in' : 'Create account';
+    message.textContent = '';
+  }
+
+  toggleLink.addEventListener('click', (e) => { e.preventDefault(); setMode(!signUpMode); });
+
+  submitBtn.addEventListener('click', async () => {
+    message.style.color = '#c00';
+    message.textContent = '';
+    const email = emailInput.value.trim();
+    const password = passInput.value;
+    if (!email || !password) { message.textContent = 'Enter your email and password.'; return; }
+    submitBtn.disabled = true;
+    try {
+      if (signUpMode) {
+        const name = nameInput.value.trim().slice(0, 30);
+        if (!name) { message.textContent = 'Enter your name.'; return; }
+        const { data, error } = await sb.auth.signUp({
+          email, password, options: { data: { display_name: name } }
+        });
+        if (error) throw error;
+        if (!data.session) {
+          message.style.color = '#080';
+          message.textContent = 'Check your email to confirm, then sign in.';
+          setMode(false);
+        }
+      } else {
+        const { error } = await sb.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+      }
+    } catch (error) {
+      message.textContent = error.message;
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
+
+  signOutBtn.addEventListener('click', async () => {
+    try { sessionStorage.removeItem('msgIndex'); } catch (e) {}
+    await sb.auth.signOut();
+  });
+
+  // Runs on page load (restored session), sign-in and sign-out
+  sb.auth.onAuthStateChange((event, session) => {
+    overlay.style.display = session ? 'none' : 'flex';
+    signOutBtn.style.display = session ? 'block' : 'none';
+    showText(session);
+  });
+})();
+</script>
+
 </html>
+
+
