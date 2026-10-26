@@ -6,7 +6,7 @@ const maxUploadsPerHour = 5;
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, apikey, content-type",
-  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Vary": "Origin",
 };
 
@@ -103,7 +103,7 @@ Deno.serve(async (request: Request) => {
     return jsonResponse({ error: "Unauthorized" }, 401);
   }
 
-  if (request.method !== "GET" && request.method !== "POST") {
+  if (request.method !== "POST") {
     return jsonResponse({ error: "Method not allowed" }, 405);
   }
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
@@ -184,11 +184,5 @@ Deno.serve(async (request: Request) => {
     return jsonResponse({ error: "Could not save camera capture" }, 500);
   }
 
-  return jsonResponse(
-    {
-      src: supabase.storage.from(bucket).getPublicUrl(filename).data.publicUrl,
-      caption: "Camera capture",
-    },
-    201,
-  );
+     return jsonResponse({ ok: true }, 201);
 });
