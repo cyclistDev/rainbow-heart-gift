@@ -634,34 +634,11 @@
       
       <h2 class="main-text" id="love-text"></h2>
     
-    <button class="gallery-btn" id="galleryBtn" aria-label="Open photo gallery" title="Open photo gallery">
-        <span aria-hidden="true">🖼️</span>
-        <span class="gallery-label">Gallery</span>
-    </button>
-    
-    <div class="control-panel">
-        <button class="control-btn" id="musicBtn">🎵 Play Music</button>
-        <button class="control-btn" id="nextTrackBtn">Next Track</button>
-    </div>
+    <!--
+        Temporarily keeping only the Lottie Cat experience active.
+        Other homepage features are paused for now and will be re-enabled later.
+    -->
     <a class="control-btn cat-link" href="lottie-pet.html" aria-label="Open Lottie Cat" title="Open Lottie Cat">🐱</a>
-
-    <div class="music-video-panel" id="musicVideoPanel">
-        <div class="music-video-title">Love Shine — Leeheesang</div>
-        <div id="youtubePlayer"></div>
-        <div class="music-video-status" id="youtubeStatus">Loading YouTube player...</div>
-    </div>
-    
-    <div class="gallery-modal" id="galleryModal">
-        <div class="gallery-content">
-            <button class="gallery-close" id="galleryClose">✕ Close</button>
-            <button class="gallery-nav gallery-prev" id="galleryPrev">❮</button>
-            <img class="gallery-image" id="galleryImage" src="" alt="Gallery Image">
-            <button class="gallery-nav gallery-next" id="galleryNext">❯</button>
-            <div class="gallery-caption" id="galleryCaption"></div>
-        </div>
-    </div>
-    
-    <audio id="bgMusic" loop></audio>
 
 </body>
 
@@ -739,247 +716,16 @@
     - Recalculate the counter when its value changes.
     */
 
-    // Add sparkle effect
-    function createSparkle(x, y) {
-        const sparkle = document.createElement('div');
-        sparkle.className = 'sparkle';
-        sparkle.style.left = x + 'px';
-        sparkle.style.top = y + 'px';
-        sparkle.style.background = colors[Math.floor(Math.random() * colors.length)];
-        document.body.appendChild(sparkle);
-        
-        setTimeout(() => {
-            sparkle.remove();
-        }, 1000);
-    }
-
-    // Add floating heart on click
-    function createFloatingHeart(x, y) {
-        const heart = document.createElement('div');
-        heart.className = 'floating-heart';
-        heart.innerHTML = '❤️';
-        heart.style.left = x + 'px';
-        heart.style.top = y + 'px';
-        heart.style.color = colors[Math.floor(Math.random() * colors.length)];
-        heart.style.fontSize = (Math.random() * 20 + 20) + 'px';
-        document.body.appendChild(heart);
-        
-        setTimeout(() => {
-            heart.remove();
-        }, 3000);
-    }
-
-    // Mouse trail effect
-    let trailTimeout;
-    document.addEventListener('mousemove', (e) => {
-        clearTimeout(trailTimeout);
-        trailTimeout = setTimeout(() => {
-            const trail = document.createElement('div');
-            trail.className = 'mouse-trail';
-            trail.style.left = e.clientX + 'px';
-            trail.style.top = e.clientY + 'px';
-            document.body.appendChild(trail);
-            
-            setTimeout(() => {
-                trail.remove();
-            }, 800);
-        }, 50);
-    });
-
     /*
-    // Click to add hearts and sparkles
-    document.addEventListener('click', (e) => {
-        // Create multiple sparkles
-        for(let i = 0; i < 5; i++) {
-            setTimeout(() => {
-                const offsetX = (Math.random() - 0.5) * 50;
-                const offsetY = (Math.random() - 0.5) * 50;
-                createSparkle(e.clientX + offsetX, e.clientY + offsetY);
-            }, i * 50);
-        }
-        
-        // Create floating heart
-        createFloatingHeart(e.clientX, e.clientY);
-    });
+        Extra visual effects are intentionally paused.
+        The only feature remaining active is the Lottie Cat experience.
     */
 
-    // Random sparkles in background
-    setInterval(() => {
-        const x = Math.random() * window.innerWidth;
-        const y = Math.random() * window.innerHeight;
-        createSparkle(x, y);
-    }, 300);
+    /*
+        Music player is paused while the Lottie Cat is the focus.
+    */
 
-    // Music playlist
-    const musicTracks = [
-        { name: "Romantic Piano", url: "https://cdn.pixabay.com/download/audio/2022/03/10/audio_c8c8a73467.mp3?filename=romantic-piano-164822.mp3" },
-        { name: "Love Ballad", url: "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=romantic-piano-124980.mp3" },
-        // { name: "Love Shine — Leeheesang", youtubeId: "P_6VIOKGRgI" },
-        // { name: "Sweet Melody", url: "https://cdn.pixabay.com/download/audio/2022/02/07/audio_8b61449575.mp3?filename=romantic-piano-11166.mp3" },
-        // { name: "Sweet by Cas", url: "..."}
-
-    ];
-    
-    let currentTrack = 0;
-    const bgMusic = document.getElementById('bgMusic');
-    const musicBtn = document.getElementById('musicBtn');
-    const musicVideoPanel = document.getElementById('musicVideoPanel');
-    const youtubeStatus = document.getElementById('youtubeStatus');
-    let isPlaying = false;
-    let youtubePlayer = null;
-    let youtubeApiReady = false;
-    let youtubeApiFailed = false;
-    let youtubePlayerReady = false;
-
-    function updateMusicButton() {
-        musicBtn.textContent = isPlaying ? '⏸️ Pause Music' : '🎵 Play Music';
-    }
-
-    function initializeYoutubePlayer() {
-        if (!youtubeApiReady || youtubePlayer || !musicVideoPanel.classList.contains('active')) {
-            return;
-        }
-
-        const youtubeVideoId = musicTracks[currentTrack].youtubeId;
-        if (!youtubeVideoId) {
-            return;
-        }
-
-        const playerVars = {
-            controls: 1,
-            playsinline: 1
-        };
-        if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
-            playerVars.origin = window.location.origin;
-        }
-
-        youtubePlayer = new YT.Player('youtubePlayer', {
-            width: '320',
-            height: '180',
-            videoId: youtubeVideoId,
-            playerVars,
-            events: {
-                onReady: (event) => {
-                    youtubePlayerReady = true;
-                    youtubeStatus.textContent = 'Use the video controls or Play Music.';
-                    if (musicTracks[currentTrack].youtubeId === youtubeVideoId) {
-                        event.target.cueVideoById(youtubeVideoId);
-                    } else {
-                        event.target.pauseVideo();
-                    }
-                },
-                onStateChange: (event) => {
-                    if (!musicTracks[currentTrack].youtubeId) {
-                        return;
-                    }
-
-                    if (event.data === YT.PlayerState.PLAYING) {
-                        isPlaying = true;
-                        updateMusicButton();
-                    } else if (
-                        event.data === YT.PlayerState.PAUSED ||
-                        event.data === YT.PlayerState.ENDED
-                    ) {
-                        isPlaying = false;
-                        updateMusicButton();
-                    }
-                },
-                onError: () => {
-                    youtubeStatus.textContent = 'This video cannot be played here.';
-                }
-            }
-        });
-    }
-
-    window.onYouTubeIframeAPIReady = () => {
-        youtubeApiReady = true;
-        initializeYoutubePlayer();
-    };
-
-    const youtubeApiScript = document.createElement('script');
-    youtubeApiScript.src = 'https://www.youtube.com/iframe_api';
-    youtubeApiScript.addEventListener('error', () => {
-        youtubeApiFailed = true;
-        if (musicTracks[currentTrack].youtubeId) {
-            youtubeStatus.textContent = 'Could not load YouTube. Check your internet connection.';
-        }
-    });
-    document.head.appendChild(youtubeApiScript);
-
-    function loadTrack(index) {
-        const track = musicTracks[index];
-        if (track.youtubeId) {
-            bgMusic.pause();
-            musicVideoPanel.classList.add('active');
-            youtubeStatus.textContent = youtubeApiFailed
-                ? 'Could not load YouTube. Check your internet connection.'
-                : 'Loading YouTube player...';
-            initializeYoutubePlayer();
-            if (youtubePlayerReady) {
-                if (isPlaying) {
-                    youtubePlayer.loadVideoById(track.youtubeId);
-                } else {
-                    youtubePlayer.cueVideoById(track.youtubeId);
-                }
-            } else {
-                isPlaying = false;
-                updateMusicButton();
-            }
-            return;
-        }
-
-        musicVideoPanel.classList.remove('active');
-        if (youtubePlayerReady) {
-            youtubePlayer.pauseVideo();
-        }
-        bgMusic.src = track.url;
-        if (isPlaying) {
-            bgMusic.play();
-        }
-    }
-
-    loadTrack(0);
-
-    // Music control
-    musicBtn.addEventListener('click', () => {
-        if (musicTracks[currentTrack].youtubeId) {
-            if (!youtubePlayerReady) {
-                youtubeStatus.textContent = youtubeApiFailed
-                    ? 'Could not load YouTube. Check your internet connection.'
-                    : 'Player is loading. Please try Play Music again shortly.';
-                initializeYoutubePlayer();
-                return;
-            }
-
-            if (isPlaying) {
-                youtubePlayer.pauseVideo();
-            } else {
-                youtubePlayer.playVideo();
-                isPlaying = true;
-                updateMusicButton();
-            }
-            return;
-        }
-
-        if (isPlaying) {
-            bgMusic.pause();
-            isPlaying = false;
-        } else {
-            bgMusic.play();
-            isPlaying = true;
-        }
-        updateMusicButton();
-    });
-
-    // Next track
-    document.getElementById('nextTrackBtn').addEventListener('click', () => {
-        currentTrack = (currentTrack + 1) % musicTracks.length;
-        loadTrack(currentTrack);
-    });
-
-    // Set music volume
-    bgMusic.volume = 0.3;
-
+    /*
     // Photo Gallery
     const galleryImages = [
         { src: "./images/BeautyPlus-photo_booth-2026-05-03T06_39_59.png", caption: "A memory from May 3, 2026 💕" },
@@ -1091,12 +837,13 @@
             }
         }
     });
+    */
 
 </script>
 
 //handle authentication and personalized messages using Supabase
 
-<script>
+<!-- <script>
 (function () {
   const ORIGINAL_TEXT = 'I Love You So Much, Babe Ouksa!!';
   const loveText = document.getElementById('love-text');
@@ -1199,7 +946,7 @@
     showText(session);
   });
 })();
-</script>
+</script> -->
 
 </html>
 
