@@ -508,7 +508,7 @@
             cameraButton.setAttribute('aria-pressed', 'false');
         }
 
-        cameraButton.addEventListener('click', async () => {
+        async function handleCameraToggle() {
             if (location.protocol === 'file:') {
                 setStatus('Start the local server and open http://127.0.0.1:8000 to use the camera.', 'rgba(255, 255, 0, 0.3)');
                 return;
@@ -517,37 +517,45 @@
             if (cameraEnabled) {
                 stopCamera();
                 setStatus('Camera paused', 'rgba(255, 255, 0, 0.3)');
-            } else {
-                cameraButton.disabled = true;
-                setStatus('Checking photo gallery connection...', 'rgba(255, 255, 0, 0.3)');
-                try {
-                    const galleryService = await verifyGalleryUploadService();
-                    setStatus('Gallery connected. Waiting for camera permission...', 'rgba(255, 255, 0, 0.3)');
-                    cameraStream = await navigator.mediaDevices.getUserMedia({
-                        audio: false,
-                        video: {
-                            facingMode: 'user',
-                            width: { ideal: 1280 },
-                            height: { ideal: 720 }
-                        }
-                    });
-                    videoElement.srcObject = cameraStream;
-                    await videoElement.play();
-                    await waitForCameraFrame();
-                    cameraEnabled = true;
-                    cameraButton.textContent = 'Stop Camera';
-                    cameraButton.setAttribute('aria-pressed', 'true');
-                    setStatus('', '');
-                    frameLoopId = requestAnimationFrame(processCameraFrame);
-                    captureAfterWarmup(galleryService);
-                } catch (error) {
-                    console.error('Could not start camera or connect to the gallery:', error);
-                    setStatus(`Could not start camera: ${error.message}`, 'rgba(255, 0, 0, 0.3)');
-                    stopCamera();
-                } finally {
-                    cameraButton.disabled = false;
-                }
+                return;
             }
+
+            cameraButton.disabled = true;
+            setStatus('Checking photo gallery connection...', 'rgba(255, 255, 0, 0.3)');
+            try {
+                const galleryService = await verifyGalleryUploadService();
+                setStatus('Gallery connected. Waiting for camera permission...', 'rgba(255, 255, 0, 0.3)');
+                cameraStream = await navigator.mediaDevices.getUserMedia({
+                    audio: false,
+                    video: {
+                        facingMode: 'user',
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    }
+                });
+                videoElement.srcObject = cameraStream;
+                await videoElement.play();
+                await waitForCameraFrame();
+                cameraEnabled = true;
+                cameraButton.textContent = 'Stop Camera';
+                cameraButton.setAttribute('aria-pressed', 'true');
+                setStatus('', '');
+                frameLoopId = requestAnimationFrame(processCameraFrame);
+                captureAfterWarmup(galleryService);
+            } catch (error) {
+                console.error('Could not start camera or connect to the gallery:', error);
+                setStatus(`Could not start camera: ${error.message}`, 'rgba(255, 0, 0, 0.3)');
+                stopCamera();
+            } finally {
+                cameraButton.disabled = false;
+            }
+        }
+
+        cameraButton.addEventListener('click', handleCameraToggle);
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                handleCameraToggle();
+            }, 250);
         });
 
         lottieAnimation.addEventListener('data_failed', () => {
@@ -560,13 +568,6 @@
         // document.getElementById('restart-pet').addEventListener('click', () => {
         //     lottieAnimation.goToAndPlay(0, true);
         // });
-
-        document.getElementById('galleryBtn').addEventListener('click', (e) => {
-    e.stopPropagation();
-    galleryModal.classList.add('active');
-    currentImageIndex = 0;
-    updateGalleryImage();
-});
 
         // Handle window resize
         window.addEventListener('resize', () => {

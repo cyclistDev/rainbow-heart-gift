@@ -206,16 +206,7 @@
         }
 
         .days-counter {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 10;
-            text-align: center;
-            color: #fff;
-            font-size: clamp(17px, 3vw, 22px);
-            padding: 10px 16px;
-            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.85);
+            display: none;
         }
 
         .days-counter-title {
@@ -390,16 +381,30 @@
 
         .cat-link {
             position: fixed;
-            right: 20px;
-            bottom: 20px;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
             z-index: 16;
-            width: 48px;
-            height: 48px;
-            padding: 0;
-            display: grid;
-            place-items: center;
-            font-size: 25px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 14px 22px;
+            min-width: 180px;
+            color: #fff;
+            font-size: 20px;
+            font-weight: bold;
             text-decoration: none;
+            border-radius: 999px;
+            background: rgba(255, 105, 180, 0.22);
+            border: 2px solid rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(5px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+        }
+
+        .cat-link .cat-icon {
+            font-size: 28px;
+            line-height: 1;
         }
 
         .gallery-btn:hover {
@@ -638,7 +643,10 @@
         Temporarily keeping only the Lottie Cat experience active.
         Other homepage features are paused for now and will be re-enabled later.
     -->
-    <a class="control-btn cat-link" href="lottie-pet.html" aria-label="Open Lottie Cat" title="Open Lottie Cat">🐱</a>
+    <a class="control-btn cat-link" href="lottie-pet.html" aria-label="Open Lottie Cat" title="Open Lottie Cat">
+        <span class="cat-icon" aria-hidden="true">🐱</span>
+        <span>Lottie Cat</span>
+    </a>
 
 </body>
 
