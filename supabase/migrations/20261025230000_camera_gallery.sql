@@ -1,16 +1,15 @@
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-values ('camera-captures', 'camera-captures', true, 5242880, array['image/jpeg'])
+values ('camera-captures', 'camera-captures', false, 5242880, array['image/jpeg'])
 on conflict (id) do update
-set public = excluded.public,
+set public = false,
     file_size_limit = excluded.file_size_limit,
     allowed_mime_types = excluded.allowed_mime_types;
 
+-- Keep the bucket private. The Edge Function uses the service role to list and
+-- upload files, and returns signed/public URLs only to the client app.
+-- Do not add a broad public SELECT policy here because it allows clients to list
+-- every file in the bucket and exposes more data than intended.
 drop policy if exists "Public can read camera captures" on storage.objects;
-create policy "Public can read camera captures"
-on storage.objects
-for select
-to anon, authenticated
-using (bucket_id = 'camera-captures');
 
 create schema if not exists private;
 

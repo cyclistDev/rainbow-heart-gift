@@ -754,10 +754,7 @@
         if (supabaseConfig && supabaseConfig.url && supabaseConfig.apiKey) {
             const supabaseUrl = supabaseConfig.url.replace(/\/+$/, '');
             apiUrl = `${supabaseUrl}/functions/v1/gallery`;
-            headers = {
-                apikey: supabaseConfig.apiKey,
-                Authorization: `Bearer ${supabaseConfig.apiKey}`
-            };
+            headers = { apikey: supabaseConfig.apiKey };
         } else if (location.hostname === '127.0.0.1' || location.hostname === 'localhost') {
             apiUrl = '/api/gallery';
         } else {

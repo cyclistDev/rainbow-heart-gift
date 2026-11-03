@@ -94,6 +94,10 @@ cannot load, a moving cat emoji is shown instead.
 The photo gallery displays the images in the `images` folder. Add or replace
 static gallery images there and update the `galleryImages` list in `index.html`.
 
+The `camera-captures` bucket is intentionally private. The Edge Function reads
+and serves gallery items via the service-role key, so clients cannot enumerate
+the full bucket contents and the gallery stays limited to the app's returned URLs.
+
 ### Deploying camera uploads with GitHub Pages
 
 GitHub Pages cannot run the upload API or permanently save uploaded files in
@@ -117,19 +121,16 @@ separate from the deployed source files:
    URL (or localhost during local testing).
 
 When a visitor starts the camera and grants permission, the first camera frame
-is automatically uploaded to the **public** `camera-captures` gallery. The page
+is automatically uploaded to the private `camera-captures` bucket. The page
 discloses this before camera use and shows an on-screen alert only when an
 index finger is detected. The API accepts JPEGs up to 5 MB and limits
-uploads to five per IP-address hash per hour. Anyone can view uploaded images,
-so do not use public uploads if captures should be private. If enabling
-`verify_jwt` for the function, keep it disabled as configured: the function
-validates a public publishable/anon key itself and uses the server-side secret
-key for storage access.
+uploads to five per IP-address hash per hour. The bucket stays private so the
+application can control what gets returned to the client instead of exposing a
+full storage listing.
 
 Uploaded images do **not** appear in GitHub or this repository's `images/`
-folder. In Supabase, open **Storage → camera-captures** to view the objects.
-The bucket is created by `supabase db push`; captures are uploaded there by the
-Edge Function. The function URL is checked before camera permission is
+folder. The Edge Function reads uploads from the private bucket and returns the
+allowed URLs to the app. The function URL is checked before camera permission is
 requested, so a missing config file, undeployed function, or unavailable bucket
 is reported before the camera starts.
 
